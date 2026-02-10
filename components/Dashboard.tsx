@@ -494,6 +494,54 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                           {selectedAssignment ? (
                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                              {/* Optimized Weekly Progress Summary */}
+                              <section className="bg-white dark:bg-slate-900 rounded-[3.5rem] p-10 border border-slate-200/60 dark:border-slate-800 premium-shadow relative overflow-hidden group">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
+                                  <div className="space-y-6">
+                                    <div className="flex items-center space-x-3">
+                                      <div className="bg-brand-50 dark:bg-brand-900/30 p-3 rounded-2xl text-brand-600">
+                                        <Trophy className="w-6 h-6" />
+                                      </div>
+                                      <div>
+                                        <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Haftalık Gelişim</h3>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Mevcut Seviyen: {user.level || 1}. Seviye</p>
+                                      </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                      <div className="flex items-end justify-between">
+                                        <span className="text-4xl font-black text-slate-900 dark:text-white">
+                                          %{Math.min(user.xp ? Math.round((user.xp / 1000) * 100) : 0, 100)}
+                                        </span>
+                                        <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest bg-brand-50 dark:bg-brand-900/40 px-3 py-1.5 rounded-full border border-brand-100 dark:border-brand-800">
+                                          Sonraki Hedefe 240 XP Kaldı
+                                        </span>
+                                      </div>
+                                      <div className="w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-1 border border-slate-200/50 dark:border-slate-800 shadow-inner">
+                                        <div
+                                          className="h-full bg-gradient-to-r from-brand-600 to-indigo-500 rounded-full transition-all duration-1000 ease-out"
+                                          style={{ width: `${Math.min(user.xp ? Math.round((user.xp / 1000) * 100) : 0, 100)}%` }}
+                                        ></div>
+                                      </div>
+                                    </div>
+                                  </div>
+
+                                  <div className="flex flex-col gap-3 shrink-0">
+                                    <button
+                                      onClick={() => onNavigate(AppTab.PATHWAY)}
+                                      className="px-8 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-all shadow-xl group/btn"
+                                    >
+                                      <span>Yol Haritasını Görüntüle</span>
+                                      <ArrowRight className="inline-block ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                                    </button>
+                                    <p className="text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                      Toplam {user.xp || 0} Deneyim Puanı Topladın
+                                    </p>
+                                  </div>
+                                </div>
+                              </section>
                               <div className="bg-[#FAFAFA] dark:bg-slate-800/50 rounded-[2.5rem] p-8 border-2 border-blue-100 dark:border-slate-800 shadow-inner hover:border-emerald-500/30 transition-colors duration-300">
                                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                                   <div className="flex-1 space-y-4">

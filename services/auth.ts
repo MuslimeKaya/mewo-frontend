@@ -132,6 +132,17 @@ export const authService = {
         if (!response.ok) throw new Error('Başvuru reddedilemedi');
     },
 
+    async getStudentProgressForTeacher(studentId: string): Promise<any[]> {
+        const token = this.getToken();
+        if (!token) return [];
+
+        const response = await fetch(`${API_URL}/words/teacher/student-progress/${studentId}`, {
+            headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!response.ok) throw new Error('Öğrenci ilerlemesi yüklenemedi');
+        return response.json();
+    },
+
     getToken() {
         if (typeof window === 'undefined') return '';
         const userStr = localStorage.getItem('mewo_user');

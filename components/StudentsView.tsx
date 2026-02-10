@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, Mail, Trophy, Clock, ArrowUpRight, TrendingUp, Zap, GraduationCap, Filter, ShieldCheck } from 'lucide-react';
+import { Users, Search, Mail, Trophy, Clock, ArrowUpRight, TrendingUp, Zap, GraduationCap, Filter, ShieldCheck, X, CheckSquare, Target } from 'lucide-react';
 import { authService } from '../services/auth';
+import { Word } from '../services/words';
 
 export const StudentsView: React.FC = () => {
     const [students, setStudents] = useState<any[]>([]);
@@ -10,9 +11,11 @@ export const StudentsView: React.FC = () => {
     const [activeTab, setActiveTab] = useState<'roster' | 'requests'>('roster');
     const [pendingRequests, setPendingRequests] = useState<any[]>([]);
 
-    // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
+    const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
+    const [studentProgress, setStudentProgress] = useState<any[]>([]);
+    const [fetchingProgress, setFetchingProgress] = useState(false);
     const itemsPerPage = 20;
 
     useEffect(() => {
@@ -173,6 +176,18 @@ export const StudentsView: React.FC = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                         {filteredStudents.map((student) => (
                             <div key={student.id}
+                                onClick={async () => {
+                                    setSelectedStudent(student);
+                                    setFetchingProgress(true);
+                                    try {
+                                        const progress = await authService.getStudentProgressForTeacher(student.id);
+                                        setStudentProgress(progress);
+                                    } catch (e) {
+                                        console.error('Progress error:', e);
+                                    } finally {
+                                        setFetchingProgress(false);
+                                    }
+                                }}
                                 className="group bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-2.5 px-3 shadow-sm hover:shadow-md hover:border-brand-500/30 transition-all duration-300 cursor-pointer flex items-center gap-3">
                                 <div className="w-8 h-8 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700/50 group-hover:bg-brand-600 group-hover:text-white transition-all">
                                     <span className="text-[10px] font-black uppercase text-slate-400 group-hover:text-white">{student.firstName?.[0]}{student.lastName?.[0]}</span>
@@ -269,6 +284,72 @@ export const StudentsView: React.FC = () => {
                         >
                             SONRAKİ <span className="text-sm">→</span>
                         </button>
+                    </div>
+                </div>
+            )}
+            {/* Student Progress Modal */}
+            {selectedStudent && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden border-4 border-white dark:border-slate-800">
+                        <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
+                            <div className="flex items-center space-x-4">
+                                <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center text-white text-lg font-black">
+                                    {selectedStudent.firstName[0]}{selectedStudent.lastName[0]}
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                                        {selectedStudent.firstName} {selectedStudent.lastName}
+                                    </h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Yol Haritası ve Seviye İlerlemesi</p>
+                                </div>
+                            </div>
+                            <button onClick={() => setSelectedStudent(null)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-colors">
+                                <X className="w-6 h-6 text-slate-400" />
+                            </button>
+                        </div>
+
+                        <div className="p-8 space-y-6">
+                            {fetchingProgress ? (
+                                <div className="py-20 flex flex-col items-center justify-center space-y-4">
+                                    <div className="w-10 h-10 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin"></div>
+                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Veriler yükleniyor...</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {studentProgress.map((p, idx) => (
+                                        <div key={idx} className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 group hover:border-brand-500/30 transition-all">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black ${p.percentage === 100 ? 'bg-emerald-500 text-white' : 'bg-brand-100 dark:bg-brand-900/30 text-brand-600'}`}>
+                                                        {p.level}
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kelime Bilgisi</p>
+                                                        <h4 className="text-sm font-black text-slate-900 dark:text-white">{p.learned} / {p.total} Kelime</h4>
+                                                    </div>
+                                                </div>
+                                                <span className={`text-xs font-black ${p.percentage === 100 ? 'text-emerald-500' : 'text-brand-600'}`}>%{p.percentage}</span>
+                                            </div>
+                                            <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                                                <div
+                                                    className={`h-full transition-all duration-1000 ${p.percentage === 100 ? 'bg-emerald-500' : 'bg-brand-500'}`}
+                                                    style={{ width: `${p.percentage}%` }}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-6 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                            <button
+                                onClick={() => setSelectedStudent(null)}
+                                className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
+                            >
+                                Kapat
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
