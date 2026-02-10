@@ -225,7 +225,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
             <button onClick={() => setShowPolicy({ open: true, type: 'privacy' })} className="text-[9px] font-black text-slate-400 hover:text-brand-600 uppercase tracking-widest transition-colors">Gizlilik</button>
             <div className="w-[1px] h-3 bg-slate-100 dark:bg-slate-800"></div>
             <p className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">
-              Empowering Teachers & Students
+              Empowering Teachers & Students | Happy Hacking Space
             </p>
           </div>
         </footer>
