@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const inter = Inter({
     subsets: ["latin"],
-    variable: "--font-plus-jakarta",
-    weight: ["300", "400", "500", "600", "700", "800"],
+    variable: "--font-inter",
+    weight: ["300", "400", "500", "600", "700", "800", "900"],
 });
 
 const jetBrainsMono = JetBrains_Mono({
@@ -56,7 +56,7 @@ export default function RootLayout({
     return (
         <html lang="en" className="scroll-smooth">
             <body
-                className={`${plusJakartaSans.variable} ${jetBrainsMono.variable} bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100`}
+                className={`${inter.variable} ${jetBrainsMono.variable} bg-[#F8FAFC] dark:bg-slate-950 text-slate-900 dark:text-slate-100`}
             >
                 <div id="root" className="app-container">
                     {children}
