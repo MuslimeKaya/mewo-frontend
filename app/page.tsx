@@ -1,0 +1,162 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { Layout } from '@/components/Layout';
+import { Dashboard } from '@/components/Dashboard';
+import { RoadmapView } from '@/components/RoadmapView';
+import { AITutor } from '@/components/AITutor';
+import { ResourcesView } from '@/components/ResourcesView';
+import { StudentsView } from '@/components/StudentsView';
+import { TeachersView } from '@/components/TeachersView';
+import { Login } from '@/components/Login';
+import { AppTab, User } from '@/types';
+
+export default function Home() {
+    const [activeTab, setActiveTab] = useState<AppTab>(AppTab.DASHBOARD);
+    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const [isDarkMode, setIsDarkMode] = useState(false);
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        const savedUser = localStorage.getItem('mewo_user');
+        if (savedUser) {
+            setCurrentUser(JSON.parse(savedUser));
+        }
+
+        // URL Path kontrolü (Rewrites sayesinde /roadmap vb. buraya düşer)
+        const path = window.location.pathname;
+
+        switch (path) {
+            case '/roadmap':
+            case '/pathway':
+                setActiveTab(AppTab.PATHWAY);
+                break;
+            case '/tutor':
+                setActiveTab(AppTab.AI_TUTOR);
+                break;
+            case '/library':
+                setActiveTab(AppTab.LIBRARY);
+                break;
+            case '/students':
+                setActiveTab(AppTab.STUDENTS);
+                break;
+            case '/teachers':
+                setActiveTab(AppTab.TEACHERS);
+                break;
+            case '/hub':
+            case '/dashboard': // Legacy support
+                setActiveTab(AppTab.DASHBOARD);
+                break;
+            default:
+                // Path yoksa localStorage veya query param kontrol et (Eski destek)
+                const params = new URLSearchParams(window.location.search);
+                const urlTab = params.get('tab') as AppTab;
+                const lastTab = localStorage.getItem('mewo_last_tab') as AppTab;
+
+                if (urlTab && Object.values(AppTab).includes(urlTab)) {
+                    setActiveTab(urlTab);
+                } else if (lastTab && Object.values(AppTab).includes(lastTab)) {
+                    setActiveTab(lastTab);
+                } else {
+                    // Varsayılan olarak Hub'a yönlendir
+                    setActiveTab(AppTab.DASHBOARD);
+                    window.history.replaceState({}, '', '/hub');
+                }
+                break;
+        }
+
+        const savedTheme = localStorage.getItem('theme');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+        if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+            setIsDarkMode(true);
+            document.documentElement.classList.add('dark');
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!mounted) return;
+
+        // Tab değişince URL'i güncelle (Clean URL)
+        let path = '/hub';
+        switch (activeTab) {
+            case AppTab.PATHWAY: path = '/roadmap'; break;
+            case AppTab.AI_TUTOR: path = '/tutor'; break;
+            case AppTab.LIBRARY: path = '/library'; break;
+            case AppTab.STUDENTS: path = '/students'; break;
+            case AppTab.TEACHERS: path = '/teachers'; break;
+            case AppTab.DASHBOARD: path = '/hub'; break;
+        }
+
+        if (window.location.pathname !== path) {
+            window.history.pushState({}, '', path);
+        }
+
+        // Son kalınan tabı kaydet
+        localStorage.setItem('mewo_last_tab', activeTab);
+
+        if (isDarkMode) {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('theme', 'light');
+        }
+    }, [isDarkMode, mounted]);
+
+    const toggleTheme = () => setIsDarkMode(!isDarkMode);
+
+    const handleLogin = (user: User) => {
+        setCurrentUser(user);
+        localStorage.setItem('mewo_user', JSON.stringify(user));
+        setActiveTab(AppTab.DASHBOARD);
+    };
+
+    const handleLogout = () => {
+        setCurrentUser(null);
+        localStorage.removeItem('mewo_user');
+    };
+
+    if (!mounted) return null;
+
+    if (!currentUser) {
+        return <Login onLogin={handleLogin} />;
+    }
+
+    const renderPage = () => {
+        switch (activeTab) {
+            case AppTab.DASHBOARD:
+                return <Dashboard onNavigate={setActiveTab} user={currentUser} />;
+            case AppTab.PATHWAY:
+                return <RoadmapView />;
+            case AppTab.AI_TUTOR:
+                return <AITutor />;
+            case AppTab.LIBRARY:
+                return <ResourcesView />;
+            case AppTab.STUDENTS:
+                return <StudentsView />;
+            case AppTab.TEACHERS:
+                return currentUser ? <TeachersView user={currentUser} /> : null;
+            default:
+                return <Dashboard onNavigate={setActiveTab} user={currentUser!} />;
+        }
+    };
+
+    return (
+        <div className="min-h-screen transition-colors duration-300">
+            <Layout
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                isDarkMode={isDarkMode}
+                toggleTheme={toggleTheme}
+                user={currentUser}
+                onLogout={handleLogout}
+            >
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-32 md:pb-10">
+                    {renderPage()}
+                </div>
+            </Layout>
+        </div>
+    );
+}
