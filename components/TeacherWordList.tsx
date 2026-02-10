@@ -180,7 +180,6 @@ export const TeacherWordList: React.FC<TeacherWordListProps> = ({
                                             </div>
                                         </div>
                                         <p className="text-sm font-black text-slate-900 dark:text-white leading-tight truncate">{word.en}</p>
-                                        <p className="text-[11px] font-bold text-slate-400 leading-tight truncate mt-0.5">{word.tr}</p>
                                     </div>
                                     <div className="flex items-center shrink-0">
                                         <button
