@@ -8,7 +8,6 @@ import {
     Sparkles,
     ArrowLeft,
     GraduationCap,
-    PlayCircle,
     HelpCircle,
     Check,
     X,
@@ -181,114 +180,127 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
 
     if (selectedTopic && !quizMode) {
         return (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-300 space-y-6">
+            <div className="animate-in fade-in slide-in-from-bottom-2 duration-500 max-w-7xl mx-auto px-4 pb-20">
+                {/* Clean Back Navigation */}
                 <button
                     onClick={() => setSelectedTopic(null)}
-                    className="flex items-center space-x-2 text-slate-500 hover:text-brand-600 font-medium text-xs transition-colors group"
+                    className="flex items-center space-x-2 text-slate-500 hover:text-slate-900 font-bold uppercase text-[10px] tracking-widest mb-8 transition-colors"
                 >
-                    <div className="bg-white dark:bg-slate-800 p-1.5 rounded-lg group-hover:bg-brand-50 dark:group-hover:bg-brand-900/20 transition-colors border border-slate-200 dark:border-slate-700">
-                        <ArrowLeft className="w-3.5 h-3.5" />
-                    </div>
-                    <span>Gramer Listesine Dön</span>
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>LİSTEYE DÖN</span>
                 </button>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                    <div className="lg:col-span-8 space-y-4">
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-100 dark:border-slate-800 shadow-sm">
-
-                            {/* Topic Header */}
-                            <div className="border-b border-slate-100 dark:border-slate-800 pb-4 mb-6 flex flex-col gap-3">
-                                <div className="flex items-center justify-between">
-                                    <div className={`px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider border ${isCompleted(selectedTopic.id)
-                                            ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-900/20 dark:border-emerald-800/20'
-                                            : 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-900/20 dark:border-brand-800/20'
-                                        }`}>
-                                        {selectedTopic.cefr} Seviye
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    {/* LEFT: CONTENT CARD */}
+                    <div className="lg:col-span-8">
+                        <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800 shadow-2xl shadow-slate-200/50 dark:shadow-none overflow-hidden">
+                            {/* Header */}
+                            <div className="px-6 md:px-8 pt-6 pb-5 border-b border-slate-100 dark:border-slate-800 bg-slate-50/30 dark:bg-slate-800/20">
+                                {isCompleted(selectedTopic.id) && (
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <span className="bg-emerald-500 text-white text-[9px] font-black px-2 py-0.5 rounded-md uppercase tracking-wider">
+                                            TAMAMLANDI
+                                        </span>
                                     </div>
-                                    {isCompleted(selectedTopic.id) && (
-                                        <div className="flex items-center space-x-1.5 text-emerald-600 bg-emerald-50 dark:bg-emerald-900/10 px-2.5 py-1 rounded-md">
-                                            <CheckCircle2 className="w-3.5 h-3.5" />
-                                            <span className="text-[10px] font-bold uppercase tracking-wide">Tamamlandı</span>
-                                        </div>
-                                    )}
-                                </div>
-                                <h2 className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                                )}
+                                <h2 className="text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tighter leading-tight mb-0">
                                     {selectedTopic.title}
                                 </h2>
                             </div>
 
-                            {/* Rich Content Area */}
-                            <div className="prose dark:prose-invert prose-sm max-w-none 
-                                prose-headings:font-bold prose-headings:tracking-tight prose-headings:text-slate-900 dark:prose-headings:text-white
-                                prose-p:text-slate-600 dark:prose-p:text-slate-400 prose-p:leading-relaxed
-                                prose-strong:text-brand-600 dark:prose-strong:text-brand-400 prose-strong:font-bold
-                                prose-li:text-slate-600 dark:prose-li:text-slate-400
-                                prose-blockquote:border-l-2 prose-blockquote:border-brand-500 prose-blockquote:bg-slate-50 dark:prose-blockquote:bg-slate-800/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg prose-blockquote:not-italic
-                                prose-code:text-brand-600 dark:prose-code:text-brand-400 prose-code:bg-brand-50 dark:prose-code:bg-brand-900/20 prose-code:px-1 prose-code:rounded prose-code:font-medium
-                                prose-th:bg-slate-50 dark:prose-th:bg-slate-800/50 prose-th:p-2 prose-th:text-xs prose-th:uppercase
-                                prose-td:p-2 prose-td:border-t prose-td:border-slate-100 dark:prose-td:border-slate-800
+                            <div className="px-6 md:px-8 py-6">
+                                {/* THE RULES */}
+                                <div className="prose dark:prose-invert prose-lg max-w-none 
+                                    prose-headings:text-slate-900 dark:prose-headings:text-white prose-headings:font-black prose-headings:tracking-tighter
+                                    prose-h2:text-2xl prose-h2:mt-16 prose-h2:mb-8 prose-h2:pb-3 prose-h2:border-b-2 prose-h2:border-slate-900 dark:prose-h2:border-white
+                                    prose-h3:text-lg prose-h3:mt-10 prose-h3:mb-5
+                                    prose-p:text-slate-700 dark:prose-p:text-slate-300 prose-p:leading-loose prose-p:text-base prose-p:mb-6
+                                    prose-strong:text-slate-900 dark:prose-strong:text-brand-400 prose-strong:font-black prose-strong:bg-slate-100/50 dark:prose-strong:bg-slate-800/50 prose-strong:px-2 prose-strong:py-0.5 prose-strong:rounded-md
+                                    prose-li:text-slate-700 dark:prose-li:text-slate-300 prose-li:text-base prose-li:my-1.5
+                                    prose-table:w-full prose-table:my-10 prose-table:border-collapse
+                                    prose-th:bg-slate-900 dark:prose-th:bg-slate-800 prose-th:text-white dark:prose-th:text-slate-100 prose-th:p-4 prose-th:text-xs prose-th:font-black prose-th:uppercase prose-th:tracking-[0.2em]
+                                    prose-td:p-4 prose-td:border-b prose-td:border-slate-100 dark:prose-td:border-slate-800 prose-td:text-slate-800 dark:prose-td:text-slate-300 prose-td:font-bold prose-td:text-sm
+                                    prose-blockquote:border-l-0 prose-blockquote:my-10 prose-blockquote:p-0
                                 ">
-                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                    {selectedTopic.description}
-                                </ReactMarkdown>
+                                    <ReactMarkdown
+                                        remarkPlugins={[remarkGfm]}
+                                        components={{
+                                            blockquote: ({ node, ...props }) => (
+                                                <div className="my-6 bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border-2 border-slate-900 dark:border-slate-800">
+                                                    <div className="flex items-center gap-2 text-slate-900 dark:text-white font-black uppercase text-[9px] tracking-widest mb-2">
+                                                        <Sparkles className="w-3.5 h-3.5 text-brand-500" />
+                                                        TEMEL KURAL
+                                                    </div>
+                                                    <div className="text-slate-800 dark:text-slate-200 indent-0 not-italic font-bold text-sm leading-snug">
+                                                        {props.children}
+                                                    </div>
+                                                </div>
+                                            ),
+                                            strong: ({ node, ...props }) => (
+                                                <strong className="text-slate-900 dark:text-white font-black underline decoration-brand-500/30 decoration-4 underline-offset-4" {...props} />
+                                            )
+                                        }}
+                                    >
+                                        {selectedTopic.description}
+                                    </ReactMarkdown>
+                                </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Sidebar Actions */}
-                    <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-8 h-fit">
-                        <div className="bg-slate-900 rounded-2xl p-5 text-white shadow-lg relative overflow-hidden group">
-                            {/* Decorative Elements */}
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-xl -mr-16 -mt-16 group-hover:bg-brand-500/20 transition-colors" />
+                    {/* RIGHT: QUIZ ACTION CARD */}
+                    <div className="lg:col-span-4 lg:sticky lg:top-24">
+                        <div className="bg-slate-900 dark:bg-slate-800 p-10 rounded-[2.5rem] text-center space-y-8 shadow-2xl shadow-slate-900/40 relative overflow-hidden group">
+                            {/* Decorative Background Element */}
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/10 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-brand-500/20 transition-colors" />
 
-                            <div className="relative z-10 space-y-4">
-                                <div className="flex items-start space-x-3">
-                                    <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/5">
-                                        <PlayCircle className="w-5 h-5 text-brand-300" />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-base font-bold">Pratik Yap</h4>
-                                        <p className="text-slate-400 text-xs mt-1 leading-relaxed">
-                                            {selectedTopic.questions.length} soruluk test ile kendini dene.
-                                        </p>
+                            <div className="relative z-10 space-y-6">
+                                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center mx-auto backdrop-blur-xl border border-white/10 group-hover:scale-110 transition-transform duration-500">
+                                    <HelpCircle className="w-8 h-8 text-brand-400" />
+                                </div>
+
+                                <div className="space-y-3">
+                                    <h4 className="text-2xl md:text-3xl font-black text-white tracking-tighter">Hazırsan Başlayalım!</h4>
+                                    <p className="text-slate-400 text-base font-medium leading-relaxed">
+                                        Kuralları incelediysen öğrenmeni pekiştirmek için hemen teste başla.
+                                    </p>
+                                </div>
+
+                                <div className="pt-4">
+                                    <button
+                                        onClick={() => startQuiz(false)}
+                                        className="w-full py-5 bg-white text-slate-900 rounded-2xl font-black text-sm uppercase tracking-[0.2em] hover:bg-brand-50 active:scale-[0.98] transition-all shadow-xl shadow-white/5 flex items-center justify-center gap-3 group/btn"
+                                    >
+                                        <span>TESTE BAŞLA</span>
+                                        <ArrowLeft className="w-4 h-4 rotate-180 transform group-hover/btn:translate-x-1 transition-transform" />
+                                    </button>
+                                </div>
+
+                                <div className="pt-6 border-t border-white/10 flex items-center justify-center gap-6 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                                    <div className="flex items-center gap-1.5">
+                                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                                        <span>KONUYU TAMAMLA</span>
                                     </div>
                                 </div>
-                                <button
-                                    onClick={() => startQuiz(false)}
-                                    className="w-full bg-white text-slate-900 py-3 rounded-xl font-bold text-xs hover:bg-brand-50 transition-colors flex items-center justify-center space-x-2"
-                                >
-                                    <span>Teste Başla</span>
-                                    <ArrowLeft className="w-3 h-3 rotate-180" />
-                                </button>
                             </div>
                         </div>
 
-                        {currentTopicProgress && (
-                            <div className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 shadow-sm">
-                                <div className="flex items-center justify-between mb-3">
-                                    <div className="flex items-center space-x-2">
-                                        <div className="p-1.5 bg-emerald-50 dark:bg-emerald-900/20 rounded-lg text-emerald-600">
-                                            <Award className="w-4 h-4" />
-                                        </div>
-                                        <h5 className="text-xs font-bold text-slate-500 uppercase tracking-wide">Başarı</h5>
-                                    </div>
-                                    <span className="text-xl font-bold text-slate-900 dark:text-white">
-                                        %{currentTopicProgress.score}
-                                    </span>
-                                </div>
-                                <div className="w-full h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                    <div
-                                        className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-                                        style={{ width: `${currentTopicProgress.score}%` }}
-                                    />
-                                </div>
+                        {/* Additional Info / Success Stats could go here */}
+                        <div className="mt-6 bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-100 dark:border-slate-800 flex items-center gap-4">
+                            <div className="w-10 h-10 bg-brand-50 dark:bg-brand-900/20 rounded-xl flex items-center justify-center text-brand-600">
+                                <Award className="w-5 h-5" />
                             </div>
-                        )}
+                            <div className="space-y-0.5">
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Başarı Puanı</p>
+                                <p className="text-sm font-black text-slate-900 dark:text-white">Min. %70 Hedefi</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         );
     }
+
 
     if (quizMode) {
         if (quizFinished) {
@@ -545,124 +557,126 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
 
     // Main Topic List View
     return (
-        <div className="space-y-6 animate-in fade-in duration-500 pb-20">
-            <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 py-2">
-                <div className="space-y-1">
-                    <h1 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                        <span className="p-1.5 bg-brand-100 dark:bg-brand-900/40 rounded-lg text-brand-600">
-                            <GraduationCap className="w-5 h-5" />
-                        </span>
-                        Gramer
-                    </h1>
-                    <p className="text-slate-500 dark:text-slate-400 text-xs font-medium">
-                        {topics.length} konu ile dil bilgisi çalışmaları.
-                    </p>
-                </div>
+        <div className="relative min-h-screen -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-10 overflow-hidden">
+            {/* Cool Mesh Gradient Background */}
+            <div className="absolute inset-0 pointer-events-none -z-10">
+                <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-brand-500/5 blur-[120px] animate-pulse" />
+                <div className="absolute bottom-[10%] right-[-5%] w-[35%] h-[35%] rounded-full bg-indigo-500/5 blur-[120px]" />
+                <div className="absolute top-[20%] right-[15%] w-[25%] h-[25%] rounded-full bg-emerald-500/5 blur-[100px]" />
+            </div>
 
-                {/* Compact Search & Filter */}
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <div className="relative group">
-                        <input
-                            type="text"
-                            placeholder="Konu ara..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9 pr-3 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs font-medium shadow-sm focus:ring-2 focus:ring-brand-500/10 focus:border-brand-500 outline-none w-full sm:w-40 transition-all"
-                        />
-                        <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-brand-500 transition-colors">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                        </div>
-                    </div>
-
-                    <div className="flex gap-1.5 bg-slate-100 dark:bg-slate-800/50 p-1 rounded-lg border border-slate-200 dark:border-slate-800">
-                        {['A1', 'A2', 'B1', 'B2'].map(level => (
-                            <button
-                                key={level}
-                                onClick={() => setSelectedLevel(selectedLevel === level ? null : level)}
-                                className={`px-2.5 py-1 rounded-md text-[10px] font-bold transition-all
-                                    ${selectedLevel === level
-                                        ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm'
-                                        : 'text-slate-400 hover:text-slate-600 hover:bg-white/50 dark:hover:bg-slate-700/50'
-                                    }
-                                 `}
-                            >
-                                {level}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </header>
-
-            <div className="flex flex-col space-y-3 relative">
-                {/* Visual Line */}
-                <div className="absolute left-[19px] top-6 bottom-6 w-px bg-slate-200 dark:bg-slate-800 hidden md:block" />
-
-                {filteredTopics.length === 0 ? (
-                    <div className="py-12 text-center text-slate-400 font-medium bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-                        <div className="flex flex-col items-center space-y-2">
-                            <X className="w-8 h-8 text-slate-300" />
-                            <p className="text-xs">Konu bulunamadı</p>
-                        </div>
-                    </div>
-                ) : (
-                    filteredTopics.map((topic, idx) => {
-                        const completed = isCompleted(topic.id);
-
-                        return (
-                            <div
-                                key={topic.id}
-                                onClick={() => setSelectedTopic(topic)}
-                                className={`group relative flex items-center bg-white dark:bg-slate-900 rounded-2xl p-4 border transition-all cursor-pointer hover:shadow-lg hover:border-brand-100 dark:hover:border-slate-700 gap-4 md:gap-6 ${completed
-                                    ? 'border-emerald-100 dark:border-emerald-900/20 bg-emerald-50/10'
-                                    : 'border-slate-100 dark:border-slate-800'
-                                    }`}
-                            >
-                                {/* Index Circle */}
-                                <div className="relative z-10 shrink-0">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${completed
-                                        ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/20'
-                                        : 'bg-slate-50 dark:bg-slate-800 text-slate-500 border border-slate-200 dark:border-slate-700 group-hover:border-brand-200 group-hover:text-brand-600'
-                                        }`}>
-                                        {completed ? <Check className="w-5 h-5" /> : (idx + 1)}
-                                    </div>
-                                </div>
-
-                                {/* Content */}
-                                <div className="flex-1 min-w-0 py-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                        <span className={`text-[10px] font-bold uppercase tracking-wide
-                                            ${completed ? 'text-emerald-600' : 'text-slate-400'}
-                                        `}>
-                                            {topic.cefr}
-                                        </span>
-                                        {completed && (
-                                            <Sparkles className="w-3 h-3 text-emerald-500" />
-                                        )}
-                                    </div>
-
-                                    <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors truncate">
-                                        {topic.title}
-                                    </h3>
-
-                                    <p className="text-xs font-medium text-slate-400 line-clamp-1 mt-0.5 group-hover:text-slate-500">
-                                        {topic.description.replace(/###|#|---|-\s|\*\*/g, '').substring(0, 100)}...
-                                    </p>
-                                </div>
-
-                                {/* Right Action */}
-                                <div className="hidden sm:flex items-center gap-3 shrink-0">
-                                    <div className="flex items-center space-x-1.5 text-[10px] font-bold text-slate-400 uppercase tracking-wider bg-slate-50 dark:bg-slate-800 px-2 py-1 rounded-md">
-                                        <HelpCircle className="w-3 h-3" />
-                                        <span>{topic.questions?.length || 0} Soru</span>
-                                    </div>
-                                    <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-brand-500 group-hover:translate-x-0.5 transition-all" />
-                                </div>
+            <div className="max-w-4xl mx-auto space-y-12 animate-in fade-in duration-700 pb-20">
+                <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="space-y-2">
+                        <div className="flex items-center space-x-3">
+                            <div className="bg-white dark:bg-slate-900 p-2.5 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
+                                <GraduationCap className="w-6 h-6 text-brand-600" />
                             </div>
-                        );
-                    })
-                )}
+                            <div>
+                                <h1 className="text-3xl md:text-4xl font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-brand-600 to-indigo-600 dark:from-white dark:via-brand-400 dark:to-indigo-400">
+                                    Gramer Gelişim Yolu
+                                </h1>
+                                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-1">
+                                    Dil bilgisini adım adım, etkileşimli bir rota üzerinde keşfet.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                        <div className="flex gap-1 bg-white/50 dark:bg-slate-800/50 backdrop-blur-md p-1 rounded-xl border border-slate-200/50 dark:border-slate-700/50 shadow-sm">
+                            {['A1', 'A2', 'B1', 'B2'].map(level => (
+                                <button
+                                    key={level}
+                                    onClick={() => setSelectedLevel(selectedLevel === level ? null : level)}
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all
+                                        ${selectedLevel === level
+                                            ? 'bg-white dark:bg-slate-700 text-brand-600 shadow-sm'
+                                            : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
+                                        }
+                                    `}
+                                >
+                                    {level}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </header>
+
+                {/* Minimalist Path List */}
+                <div className="max-w-xl mx-auto relative">
+                    {filteredTopics.length === 0 ? (
+                        <div className="py-20 text-center text-slate-400 bg-slate-50/50 dark:bg-slate-900/50 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
+                            <X className="w-10 h-10 mx-auto mb-3 opacity-20" />
+                            <p className="text-sm font-medium">Konu bulunamadı</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-0">
+                            {filteredTopics.map((topic, idx) => {
+                                const completed = isCompleted(topic.id);
+                                const isLast = idx === filteredTopics.length - 1;
+
+                                return (
+                                    <div
+                                        key={topic.id}
+                                        onClick={() => setSelectedTopic(topic)}
+                                        className="group relative pl-16 pb-12 cursor-pointer transition-all active:scale-[0.98]"
+                                    >
+                                        {/* Timeline Connector Line */}
+                                        {!isLast && (
+                                            <div className="absolute left-[22px] top-12 bottom-0 w-[2px] bg-slate-100 dark:bg-slate-800 transition-colors group-hover:bg-brand-100 dark:group-hover:bg-brand-900/30" />
+                                        )}
+
+                                        {/* Step Circle */}
+                                        <div className={`absolute left-0 top-0 w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 z-10
+                                        ${completed
+                                                ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20 ring-4 ring-emerald-50 dark:ring-emerald-900/10'
+                                                : 'bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 group-hover:border-brand-500'
+                                            }`}
+                                        >
+                                            {completed ? (
+                                                <Check className="w-5 h-5 stroke-[3]" />
+                                            ) : (
+                                                <span className={`text-sm font-bold ${completed ? 'text-white' : 'text-slate-400 group-hover:text-brand-600'}`}>
+                                                    {idx + 1}
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {/* Text Content - No Card Background */}
+                                        <div className="space-y-1">
+                                            {completed && (
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="flex items-center gap-1 text-[9px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 px-1.5 py-0.5 rounded uppercase">
+                                                        Tamamlandı
+                                                    </span>
+                                                </div>
+                                            )}
+
+                                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white group-hover:text-brand-600 transition-colors tracking-tight">
+                                                {topic.title}
+                                            </h3>
+
+                                            <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed max-w-lg">
+                                                {topic.description.replace(/###|#|---|-\s|\*\*/g, '').substring(0, 100)}...
+                                            </p>
+
+                                            <div className="flex items-center gap-4 pt-2 text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wide opacity-0 group-hover:opacity-100 transition-all transform -translate-x-2 group-hover:translate-x-0">
+                                                <span className="flex items-center gap-1">
+                                                    <HelpCircle className="w-3.5 h-3.5" />
+                                                    {topic.questions?.length || 0} Soru
+                                                </span>
+                                                <span className="flex items-center gap-1 text-brand-600">
+                                                    İncele <ChevronRight className="w-3.5 h-3.5" />
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
     );
