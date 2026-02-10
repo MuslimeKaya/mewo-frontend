@@ -82,7 +82,6 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
         )}
       </div>
       <p className="text-sm font-black truncate leading-tight">{word.en}</p>
-      <p className={`text-[11px] font-bold ${isLearned ? 'text-white/70' : 'text-slate-400'} truncate leading-tight mt-0.5`}>{word.tr}</p>
     </div>
     <div className="flex items-center space-x-2 relative z-10">
       {word.teachers && word.teachers.length > 0 && (
@@ -252,47 +251,49 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
 
   return (
     <div className="px-4 py-4 md:px-6 md:py-6 space-y-6 md:space-y-8 animate-in fade-in duration-700">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center bg-white dark:bg-slate-900 px-3 py-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-800 shadow-sm hover:shadow-md transition-all group cursor-pointer">
-          <div className="relative w-8 h-8 rounded-lg bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center mr-2.5 shrink-0 group-hover:scale-105 transition-transform">
-            <Cat className="w-4 h-4 text-brand-600" />
-            <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
+      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 px-5 rounded-3xl border border-slate-200 dark:border-slate-800 premium-shadow hover:shadow-lg transition-all duration-300">
+        <div className="flex items-center space-x-4">
+          <div className="relative group/avatar">
+            <div className="w-10 h-10 bg-brand-50 dark:bg-brand-900/20 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
+              <Cat className="w-6 h-6 text-brand-600" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-[11px] font-black text-slate-900 dark:text-white leading-tight">
+          <div>
+            <h2 className="text-sm font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase">
               {user.firstName} {user.lastName}
-            </span>
-            <div className="flex items-center text-[8px] font-bold text-slate-400 uppercase tracking-tighter">
+            </h2>
+            <div className="flex items-center text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">
               {user.role === 'teacher' ? (
-                <>Eğitmen</>
+                <div className="flex items-center">
+                  <ShieldCheck className="w-3.5 h-3.5 text-brand-500 mr-1.5" />
+                  <span>Eğitmen</span>
+                </div>
               ) : (
-                <>{user.xp || 0} XP • Lvl {user.level || 1}</>
+                <div className="flex items-center">
+                  <Zap className="w-3.5 h-3.5 text-brand-500 mr-1.5" />
+                  <span>{user.xp || 0} XP • Seviye {user.level || 1}</span>
+                </div>
               )}
             </div>
           </div>
-          {user.role === 'student' && (
-            <>
-              <div className="mx-3 w-[1px] h-6 bg-slate-100 dark:bg-slate-800"></div>
-              <div className="flex items-center gap-1.5 h-full">
-                <div className="flex items-center bg-orange-50 dark:bg-orange-950/20 px-2 py-0.5 rounded-lg border border-orange-100/50 dark:border-orange-900/30">
-                  <Flame className="w-2.5 h-2.5 text-orange-600" />
-                  <span className="text-[9px] font-black text-orange-700 dark:text-orange-400 ml-1">{user.currentStreak || 0}</span>
-                </div>
-                <div className="flex items-center bg-brand-50 dark:bg-brand-950/20 px-2 py-0.5 rounded-lg border border-brand-100/50 dark:border-brand-900/30">
-                  <Zap className="w-2.5 h-2.5 text-brand-600" />
-                  <span className="text-[9px] font-black text-brand-700 dark:text-brand-400 ml-1">{user.xp || 0}</span>
-                </div>
-              </div>
-            </>
-          )}
-          {user.role === 'teacher' && (
-            <>
-              <div className="mx-3 w-[1px] h-6 bg-slate-100 dark:bg-slate-800"></div>
-              <div className="flex items-center bg-brand-50 dark:bg-brand-950/10 px-2.5 py-1 rounded-lg border border-brand-100/50 dark:border-brand-900/20">
-                <ShieldCheck className="w-3 h-3 text-brand-600" />
-                <span className="text-[8px] font-black text-brand-700 dark:text-brand-400 ml-1.5 uppercase tracking-widest">Doğrulanmış</span>
-              </div>
-            </>
+        </div>
+
+        <div className="flex items-center gap-3">
+          <div className="bg-orange-50 dark:bg-orange-950/20 px-3 py-1.5 rounded-xl border border-orange-100/50 dark:border-orange-900/30 flex items-center hover:scale-105 transition-transform cursor-pointer group/streak">
+            <Flame className="w-3.5 h-3.5 text-orange-500 mr-2 group-hover/streak:animate-bounce" />
+            <span className="text-[11px] font-black text-orange-700 dark:text-orange-400">{user.currentStreak || 0}</span>
+          </div>
+          {user.role === 'teacher' ? (
+            <div className="bg-brand-50 dark:bg-brand-950/10 px-3 py-1.5 rounded-xl border border-brand-100/50 dark:border-brand-900/20 flex items-center">
+              <ShieldCheck className="w-3.5 h-3.5 text-brand-600 mr-2" />
+              <span className="text-[10px] font-black text-brand-700 dark:text-brand-400 uppercase tracking-widest">Doğrulanmış</span>
+            </div>
+          ) : (
+            <div className="bg-brand-50 dark:bg-brand-950/20 px-3 py-1.5 rounded-xl border border-brand-100/50 dark:border-brand-900/30 flex items-center hover:scale-105 transition-transform cursor-pointer group/xp">
+              <Zap className="w-3.5 h-3.5 text-brand-600 mr-2 group-hover/xp:animate-pulse" />
+              <span className="text-[11px] font-black text-brand-700 dark:text-brand-400">{user.xp || 0}</span>
+            </div>
           )}
         </div>
       </div>
@@ -423,16 +424,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
         <div className="space-y-6 animate-in fade-in slide-in-from-top-6 duration-700">
           <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-[660px] relative">
             {!user.studentEnrollments?.some(e => e.status === 'approved') ? (
-              <div className="flex-1 bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[3rem] flex flex-col items-center justify-center p-16 text-center space-y-6 premium-shadow">
-                <div className="w-24 h-24 bg-brand-50 dark:bg-brand-900/20 rounded-[2.5rem] flex items-center justify-center text-brand-600">
-                  <ShieldCheck className="w-12 h-12" />
+              <div className="flex-1 bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[3.5rem] flex flex-col items-center justify-center p-12 md:p-20 text-center space-y-8 premium-shadow relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                <div className="relative w-32 h-32 bg-brand-50 dark:bg-brand-900/10 rounded-[3rem] flex items-center justify-center text-brand-600 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                  <div className="absolute inset-4 bg-brand-100 dark:bg-brand-900/20 rounded-[2rem] animate-pulse"></div>
+                  <ShieldCheck className="w-14 h-14 relative z-10" />
                 </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Eğitmen Onayı Bekleniyor</h3>
-                  <p className="text-sm font-bold text-slate-400 max-w-sm mx-auto">
-                    Ders içeriklerine erişmek için en az bir öğretmenden onay almalısın.
+                <div className="space-y-4 relative z-10">
+                  <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Eğitmen Onayı Bekleniyor</h3>
+                  <p className="text-base font-bold text-slate-400 max-w-sm mx-auto leading-relaxed">
+                    Mewo dünyasına tam erişim sağlamak için bir eğitmen tarafından onaylanman gerekiyor. Bu sırada "Eğitmen Keşfet" kısmından başvurularını kontrol edebilirsin.
                   </p>
                 </div>
+                <button
+                  onClick={() => onNavigate(AppTab.TEACHERS)}
+                  className="px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-all shadow-xl"
+                >
+                  Eğitmenleri Keşfet
+                </button>
               </div>
             ) : (
               <>
@@ -737,25 +746,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-8 space-y-6">
-              <section className="group relative bg-slate-900 rounded-[3rem] p-8 md:p-12 text-white overflow-hidden shadow-2xl transition-all hover:shadow-brand-900/40 hover:scale-[1.01] active:scale-[0.98] duration-500 cursor-pointer"
+              <section className="group relative bg-slate-900 rounded-[3.5rem] p-10 md:p-14 text-white overflow-hidden shadow-2xl transition-all hover:shadow-brand-900/40 hover:scale-[1.01] active:scale-[0.98] duration-500 cursor-pointer"
                 onClick={() => onNavigate(AppTab.AI_TUTOR)}>
-                <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-brand-600/20 rounded-full blur-[80px] -mr-40 -mt-40 animate-pulse group-hover:bg-brand-500/30 transition-colors"></div>
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-600/20 rounded-full blur-[100px] -mr-40 -mt-40 animate-pulse group-hover:bg-brand-500/30 transition-colors"></div>
+                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-indigo-600/10 rounded-full blur-[80px] -ml-20 -mb-20"></div>
 
-                <div className="relative z-10 space-y-6">
-                  <div className="inline-flex items-center space-x-2 bg-white/10 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border border-white/10 group-hover:border-white/20 transition-colors">
-                    <Sparkles className="w-3 h-3 text-brand-400" />
-                    <span>Mewo Yapay Zeka Laboratuvarı</span>
+                <div className="relative z-10 space-y-7">
+                  <div className="inline-flex items-center space-x-2 bg-white/10 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-white/10 group-hover:border-white/20 transition-colors backdrop-blur-md">
+                    <Sparkles className="w-3.5 h-3.5 text-brand-400 animate-pulse" />
+                    <span>Mewo AI Tutor Lab</span>
                   </div>
-                  <h3 className="text-3xl md:text-5xl font-black leading-[1.1] tracking-tight group-hover:translate-x-1 transition-transform">
-                    Konuşma <br /> <span className="text-brand-400 italic">Pratiği Yap.</span>
+                  <h3 className="text-4xl md:text-6xl font-black leading-[1.05] tracking-tighter group-hover:translate-x-1 transition-transform">
+                    Konuşma <br /> <span className="text-brand-400 italic">Yeteneklerini <br /> Geliştir.</span>
                   </h3>
-                  <p className="text-slate-400 text-sm md:text-lg max-w-sm font-medium">
-                    Bu haftaki hedeflerine ulaşmak için Mewo 2.0 ile gerçek zamanlı konuş.
+                  <p className="text-slate-400 text-base md:text-xl max-w-sm font-medium leading-relaxed">
+                    Yapay zeka eğitmenin Mewo ile 7/24 konuşma pratiği yap ve anlık geri bildirim al.
                   </p>
                   <button
-                    className="w-full md:w-auto bg-brand-600 hover:bg-brand-500 text-white px-8 py-4 rounded-[1.5rem] font-black uppercase tracking-widest transition-all shadow-xl shadow-brand-900/50 flex items-center justify-center group-hover:px-10"
+                    className="w-full md:w-auto bg-brand-600 hover:bg-brand-500 text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-brand-900/50 flex items-center justify-center group-hover:px-12 active:scale-95"
                   >
-                    Sohbeti Başlat <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                    Pratiğe Başla <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-2 transition-transform" />
                   </button>
                 </div>
               </section>
