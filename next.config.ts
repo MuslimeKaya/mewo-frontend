@@ -34,6 +34,10 @@ const nextConfig: NextConfig = {
             {
                 source: '/teachers',
                 destination: '/',
+            },
+            {
+                source: '/grammar',
+                destination: '/',
             }
         ];
     },
