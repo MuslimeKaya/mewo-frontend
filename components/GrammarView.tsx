@@ -30,6 +30,7 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
     const [score, setScore] = useState(0);
     const [quizFinished, setQuizFinished] = useState(false);
     const [studentProgress, setStudentProgress] = useState<any[]>([]);
+    const [showHint, setShowHint] = useState(false);
 
     useEffect(() => {
         fetchTopics();
@@ -39,14 +40,16 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
     const fetchTopics = async () => {
         try {
             const data = await grammarService.getTopics();
-            setTopics(data);
+            // Sort by order and then title
+            const sortedData = [...data].sort((a, b) => (a.order || 999) - (b.order || 999));
+            setTopics(sortedData);
         } catch (err) {
             console.error('Topics error:', err);
         } finally {
             setLoading(false);
         }
     };
-
+    // ... rest of help functions stay same
     const fetchProgress = async () => {
         try {
             const data = await grammarService.getProgress();
@@ -95,12 +98,23 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                     <div className="lg:col-span-8 space-y-6">
                         <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 border border-slate-100 dark:border-slate-800 premium-shadow">
-                            <div className="flex items-center justify-between mb-8">
-                                <div className="space-y-1">
+                            <div className="flex items-start justify-between mb-8">
+                                <div className="space-y-4">
                                     <div className="bg-brand-50 dark:bg-brand-900/30 text-brand-600 text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full inline-block">
                                         {selectedTopic.cefr} Level
                                     </div>
-                                    <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase">{selectedTopic.title}</h2>
+                                    <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none">{selectedTopic.title}</h2>
+                                    {selectedTopic.kaUrl && (
+                                        <a
+                                            href={selectedTopic.kaUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-[10px] text-brand-500 hover:text-brand-600 font-bold uppercase flex items-center space-x-1"
+                                        >
+                                            <span>Khan Academy Kaynağına Git</span>
+                                            <ChevronRight className="w-3 h-3" />
+                                        </a>
+                                    )}
                                 </div>
                                 {isCompleted(selectedTopic.id) && (
                                     <div className="bg-emerald-50 text-emerald-600 p-3 rounded-2xl border border-emerald-100 flex items-center space-x-2">
@@ -109,6 +123,16 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
                                     </div>
                                 )}
                             </div>
+
+                            {selectedTopic.thumbnail && (
+                                <div className="mb-8 rounded-3xl overflow-hidden aspect-video bg-slate-100 dark:bg-slate-800">
+                                    <img
+                                        src={selectedTopic.thumbnail}
+                                        alt={selectedTopic.title}
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                            )}
 
                             <div className="prose dark:prose-invert max-w-none text-slate-600 dark:text-slate-400 font-medium leading-relaxed">
                                 {selectedTopic.description.split('\n').map((line: string, i: number) => (
@@ -132,7 +156,10 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
                                     </p>
                                 </div>
                                 <button
-                                    onClick={() => setQuizMode(true)}
+                                    onClick={() => {
+                                        setQuizMode(true);
+                                        setShowHint(false);
+                                    }}
                                     className="w-full bg-brand-600 hover:bg-brand-500 text-white py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all active:scale-95 shadow-xl shadow-brand-900/40"
                                 >
                                     Teste Başla
@@ -174,6 +201,7 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
                                     setQuizFinished(false);
                                     setCurrentQuestionIdx(0);
                                     setScore(0);
+                                    setShowHint(false);
                                 }}
                                 className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all active:scale-95"
                             >
@@ -184,6 +212,7 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
                                     setSelectedTopic(null);
                                     setQuizMode(false);
                                     setQuizFinished(false);
+                                    setShowHint(false);
                                 }}
                                 className="w-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 py-4 rounded-2xl font-black uppercase tracking-widest text-xs transition-all active:scale-95"
                             >
@@ -196,12 +225,24 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
         }
 
         const currentQuestion = selectedTopic.questions[currentQuestionIdx];
+        const cleanQuestion = currentQuestion.question.replace(/\[\[☃ radio \d+\]\]/g, '').trim();
 
         return (
             <div className="flex flex-col items-center justify-center min-h-[600px] animate-in slide-in-from-bottom-8 duration-500 space-y-8">
                 <div className="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-[3.5rem] p-10 border border-slate-100 dark:border-slate-800 premium-shadow">
                     <div className="flex items-center justify-between mb-10">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Soru {currentQuestionIdx + 1} / {selectedTopic.questions.length}</span>
+                        <div className="flex items-center space-x-4">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Soru {currentQuestionIdx + 1} / {selectedTopic.questions.length}</span>
+                            {currentQuestion.hints?.length > 0 && (
+                                <button
+                                    onClick={() => setShowHint(!showHint)}
+                                    className={`flex items-center space-x-1 px-3 py-1 rounded-full text-[10px] font-black uppercase transition-colors ${showHint ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400 hover:bg-amber-50 hover:text-amber-500'}`}
+                                >
+                                    <Sparkles className="w-3 h-3" />
+                                    <span>İpucu {showHint ? 'Gizle' : 'Göster'}</span>
+                                </button>
+                            )}
+                        </div>
                         <div className="flex-1 max-w-[100px] h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full mx-4 overflow-hidden">
                             <div
                                 className="h-full bg-brand-600 transition-all duration-500"
@@ -213,9 +254,23 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
                         </button>
                     </div>
 
-                    <h4 className="text-2xl font-black text-slate-900 dark:text-white text-center mb-10 leading-relaxed px-4">
-                        {currentQuestion.question}
-                    </h4>
+                    <div className="space-y-6 mb-10">
+                        <h4 className="text-2xl font-black text-slate-900 dark:text-white text-center leading-relaxed px-4">
+                            {cleanQuestion}
+                        </h4>
+
+                        {showHint && currentQuestion.hints?.length > 0 && (
+                            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-900/30 p-6 rounded-3xl animate-in fade-in slide-in-from-top-4 duration-300">
+                                <div className="flex items-center space-x-2 text-amber-600 mb-2">
+                                    <Sparkles className="w-4 h-4" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest">İpucu</span>
+                                </div>
+                                <div className="text-sm font-medium text-amber-800 dark:text-amber-400 leading-relaxed">
+                                    {currentQuestion.hints[0]}
+                                </div>
+                            </div>
+                        )}
+                    </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {currentQuestion.options.map((option: string, i: number) => (
@@ -227,6 +282,7 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
                                     }
                                     if (currentQuestionIdx + 1 < selectedTopic.questions.length) {
                                         setCurrentQuestionIdx(prev => prev + 1);
+                                        setShowHint(false);
                                     } else {
                                         handleFinishQuiz();
                                     }
@@ -258,7 +314,7 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
                         <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-widest uppercase">Gramer Laboratuvarı</h1>
                     </div>
                     <p className="text-slate-500 dark:text-slate-400 font-bold max-w-xl leading-relaxed">
-                        Veritabanımızdaki gerçek gramer konularını keşfet, anlatımları oku ve mini testlerle seviyeni belirle.
+                        Veritabanımızdaki {topics.length} gramer konusunu keşfet, anlatımları oku ve mini testlerle seviyeni belirle.
                     </p>
                 </div>
                 <div className="flex items-center space-x-2 bg-white dark:bg-slate-900 px-6 py-4 rounded-[2rem] border border-slate-200 dark:border-slate-800 premium-shadow">
@@ -272,43 +328,63 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {topics.map((topic, idx) => {
                     const completed = isCompleted(topic.id);
-                    const active = true; // For now all real DB topics are active
+                    const active = true;
 
                     return (
                         <div
                             key={topic.id}
                             onClick={() => setSelectedTopic(topic)}
-                            className={`group relative bg-white dark:bg-slate-900 rounded-[3rem] p-8 border-2 transition-all cursor-pointer hover:shadow-2xl hover:-translate-y-1 active:scale-[0.98] h-full flex flex-col ${completed
-                                    ? 'border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/10'
-                                    : 'border-slate-200 dark:border-slate-800'
+                            className={`group relative bg-white dark:bg-slate-900 rounded-[3rem] overflow-hidden border-2 transition-all cursor-pointer hover:shadow-2xl hover:-translate-y-1 active:scale-[0.98] h-full flex flex-col ${completed
+                                ? 'border-emerald-100 dark:border-emerald-900/30 bg-emerald-50/10'
+                                : 'border-slate-200 dark:border-slate-800'
                                 }`}
                         >
-                            <div className="flex items-center justify-between mb-6">
-                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${completed ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-slate-900 dark:bg-brand-600'
-                                    }`}>
-                                    {completed ? <CheckCircle2 className="w-6 h-6" /> : <Book className="w-5 h-5" />}
+                            {topic.thumbnail && (
+                                <div className="h-48 overflow-hidden relative">
+                                    <div className="absolute inset-0 bg-slate-900/20 group-hover:bg-transparent transition-colors z-10" />
+                                    <img
+                                        src={topic.thumbnail}
+                                        alt={topic.title}
+                                        className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                                    />
+                                    <div className="absolute bottom-4 left-4 z-20">
+                                        <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">
+                                            {topic.cefr} Level
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-500 px-3 py-1 rounded-full uppercase tracking-widest">
-                                    {topic.cefr}
-                                </div>
-                            </div>
+                            )}
 
-                            <div className="flex-1 space-y-2">
-                                <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight uppercase group-hover:text-brand-600 transition-colors">
-                                    {topic.title}
-                                </h3>
-                                <p className="text-xs font-bold text-slate-400 line-clamp-2">
-                                    {topic.description.replace(/###|#|---|-\s|\*\*/g, '').substring(0, 100)}...
-                                </p>
-                            </div>
-
-                            <div className="mt-8 flex items-center justify-between pt-6 border-t border-slate-50 dark:border-slate-800/50">
-                                <div className="flex items-center space-x-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    <HelpCircle className="w-4 h-4" />
-                                    <span>{topic.questions?.length || 0} Soru</span>
+                            <div className="p-8 flex-1 flex flex-col">
+                                <div className="flex items-center justify-between mb-6">
+                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white shadow-lg ${completed ? 'bg-emerald-500 shadow-emerald-500/30' : 'bg-slate-900 dark:bg-brand-600'
+                                        }`}>
+                                        {completed ? <CheckCircle2 className="w-6 h-6" /> : <Book className="w-5 h-5" />}
+                                    </div>
+                                    {!topic.thumbnail && (
+                                        <div className="text-[10px] font-black bg-slate-100 dark:bg-slate-800 text-slate-500 px-3 py-1 rounded-full uppercase tracking-widest">
+                                            {topic.cefr}
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="text-brand-600 group-hover:translate-x-1 transition-transform">
-                                    <ChevronRight className="w-5 h-5" />
+
+                                <div className="flex-1 space-y-2">
+                                    <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight uppercase group-hover:text-brand-600 transition-colors">
+                                        {topic.title}
+                                    </h3>
+                                    <p className="text-xs font-bold text-slate-400 line-clamp-2">
+                                        {topic.description.replace(/###|#|---|-\s|\*\*/g, '').substring(0, 100)}...
+                                    </p>
+                                </div>
+
+                                <div className="mt-8 flex items-center justify-between pt-6 border-t border-slate-50 dark:border-slate-800/50">
+                                    <div className="flex items-center space-x-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                        <HelpCircle className="w-4 h-4" />
+                                        <span>{topic.questions?.length || 0} Soru</span>
+                                    </div>
+                                    <div className="text-brand-600 group-hover:translate-x-1 transition-transform">
+                                        <ChevronRight className="w-5 h-5" />
+                                    </div>
                                 </div>
                             </div>
                         </div>
