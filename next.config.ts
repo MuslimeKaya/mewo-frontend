@@ -1,0 +1,42 @@
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+    async rewrites() {
+        return [
+            {
+                source: '/hub',
+                destination: '/',
+            },
+            {
+                source: '/dashboard',
+                destination: '/',
+            },
+            {
+                source: '/roadmap',
+                destination: '/',
+            },
+            {
+                source: '/pathway', // Alias for roadmap just in case
+                destination: '/',
+            },
+            {
+                source: '/tutor',
+                destination: '/',
+            },
+            {
+                source: '/library',
+                destination: '/',
+            },
+            {
+                source: '/students',
+                destination: '/',
+            },
+            {
+                source: '/teachers',
+                destination: '/',
+            }
+        ];
+    },
+};
+
+export default nextConfig;

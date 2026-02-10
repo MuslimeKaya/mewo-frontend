@@ -1,0 +1,8 @@
+{
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ],
+  "name": "Mewo Lingua | Premium English Learning",
+  "description": ""
+}
