@@ -56,5 +56,6 @@ export enum AppTab {
   AI_TUTOR = 'tutor',
   LIBRARY = 'library',
   STUDENTS = 'students',
-  TEACHERS = 'teachers'
+  TEACHERS = 'teachers',
+  GRAMMAR = 'grammar'
 }

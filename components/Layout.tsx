@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Compass, Sparkles, Library, Cat, Bell, Moon, Sun, LogOut, ShieldCheck, User as UserIcon, Users, X } from 'lucide-react';
+import { LayoutDashboard, Compass, Sparkles, Library, Cat, Bell, Moon, Sun, LogOut, ShieldCheck, User as UserIcon, Users, X, BookOpen } from 'lucide-react';
 import { AppTab, User } from '../types';
 import { BulletinBoard } from './BulletinBoard';
 import { bulletinsService } from '../services/bulletins';
@@ -80,11 +80,27 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
   const navItems = [
     { id: AppTab.DASHBOARD, label: 'Hub', icon: LayoutDashboard },
     { id: AppTab.PATHWAY, label: 'Roadmap', icon: Compass },
+    { id: AppTab.GRAMMAR, label: 'Grammar', icon: BookOpen },
     { id: AppTab.AI_TUTOR, label: 'Chat', icon: Sparkles },
     { id: AppTab.LIBRARY, label: 'Library', icon: Library },
     ...(user.role === 'teacher' ? [{ id: AppTab.STUDENTS, label: 'Students', icon: Users }] : []),
     ...(user.role === 'student' ? [{ id: AppTab.TEACHERS, label: 'Teachers', icon: ShieldCheck }] : []),
   ];
+
+  const handleTabChange = (id: AppTab) => {
+    onTabChange(id);
+    let path = '/hub';
+    switch (id) {
+      case AppTab.PATHWAY: path = '/roadmap'; break;
+      case AppTab.GRAMMAR: path = '/grammar'; break;
+      case AppTab.AI_TUTOR: path = '/tutor'; break;
+      case AppTab.LIBRARY: path = '/library'; break;
+      case AppTab.STUDENTS: path = '/students'; break;
+      case AppTab.TEACHERS: path = '/teachers'; break;
+      case AppTab.DASHBOARD: path = '/hub'; break;
+    }
+    window.history.pushState({}, '', path);
+  };
 
   return (
     <div className="min-h-full flex flex-col bg-[#F8FAFC] dark:bg-slate-950">
@@ -106,20 +122,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
             {navItems.map((item) => (
               <button
                 key={item.id}
-                onClick={() => {
-                  onTabChange(item.id);
-                  // Force URL update immediately for better UX
-                  let path = '/hub';
-                  switch (item.id) {
-                    case AppTab.PATHWAY: path = '/roadmap'; break;
-                    case AppTab.AI_TUTOR: path = '/tutor'; break;
-                    case AppTab.LIBRARY: path = '/library'; break;
-                    case AppTab.STUDENTS: path = '/students'; break;
-                    case AppTab.TEACHERS: path = '/teachers'; break;
-                    case AppTab.DASHBOARD: path = '/hub'; break;
-                  }
-                  window.history.pushState({}, '', path);
-                }}
+                onClick={() => handleTabChange(item.id)}
                 className={`flex items-center px-5 py-2.5 rounded-xl transition-all text-sm font-semibold ${activeTab === item.id
                   ? 'bg-white dark:bg-slate-800 text-brand-700 dark:text-brand-400 shadow-md ring-1 ring-slate-200/50 dark:ring-slate-700/50'
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-slate-800/40'
@@ -237,7 +240,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
             return (
               <button
                 key={item.id}
-                onClick={() => onTabChange(item.id)}
+                onClick={() => handleTabChange(item.id)}
                 className="relative flex flex-col items-center justify-center w-16 h-14 group active:scale-95 transition-transform"
               >
                 {isActive && (

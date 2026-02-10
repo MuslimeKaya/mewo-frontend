@@ -120,7 +120,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [activeCard, setActiveCard] = useState<'study' | 'history'>('study');
   const [activeTeacherCard, setActiveTeacherCard] = useState<'selector' | 'list' | 'history'>('selector');
-  const [viewingFile, setViewingFile] = useState<any | null>(null); // New state for inline file viewing
+  const [viewingFile, setViewingFile] = useState<any | null>(null);
   const [wordToQuiz, setWordToQuiz] = useState<string | null>(null);
 
   useEffect(() => {
@@ -159,10 +159,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
       setAssignments(sortedHistory);
     } catch (err: any) {
       console.error('Ödev geçmişi yüklenemedi:', err);
-      if (err.message?.includes('Oturumunuz sona ermiş') || err.message?.includes('Oturum anahtarı bulunamadı')) {
-        localStorage.removeItem('mewo_user');
-        window.location.reload();
-      }
     }
   };
 
@@ -185,8 +181,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
     try {
       const words = await wordsService.getRecommendedWords();
       setRecommendedWords(words);
-
-      // AI Tutor Context güncellemesi için kelimeleri kaydet
       if (words.length > 0) {
         localStorage.setItem('mewo_recommended_words', JSON.stringify(words.map(w => w.en)));
       }
@@ -209,7 +203,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
 
   const handleToggleLearned = async (wordId: string) => {
     if (user.role !== 'student') return;
-
     if (learnedWordIds.has(wordId)) {
       try {
         await wordsService.verifyQuiz(wordId, false);
@@ -219,7 +212,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
       } catch (e) { console.error(e); }
       return;
     }
-
     setWordToQuiz(wordId);
   };
 
@@ -229,14 +221,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
       const next = new Set(learnedWordIds);
       next.add(wordId);
       setLearnedWordIds(next);
-
       if (!readWordIds.has(wordId)) {
         const nextRead = new Set(readWordIds);
         nextRead.add(wordId);
         setReadWordIds(nextRead);
         localStorage.setItem(`mewo_read_words_${user.id}`, JSON.stringify(Array.from(nextRead)));
       }
-
       triggerRefresh();
     }
   };
@@ -415,36 +405,80 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
               </div>
             </div>
           </div>
-
-
         </div>
       )}
 
       {user.role === 'student' && (
         <div className="space-y-6 animate-in fade-in slide-in-from-top-6 duration-700">
-          <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-[660px] relative">
-            {!user.studentEnrollments?.some(e => e.status === 'approved') ? (
-              <div className="flex-1 bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[3.5rem] flex flex-col items-center justify-center p-12 md:p-20 text-center space-y-8 premium-shadow relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
-                <div className="relative w-32 h-32 bg-brand-50 dark:bg-brand-900/10 rounded-[3rem] flex items-center justify-center text-brand-600 shadow-inner group-hover:scale-110 transition-transform duration-500">
-                  <div className="absolute inset-4 bg-brand-100 dark:bg-brand-900/20 rounded-[2rem] animate-pulse"></div>
-                  <ShieldCheck className="w-14 h-14 relative z-10" />
-                </div>
-                <div className="space-y-4 relative z-10">
-                  <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Eğitmen Onayı Bekleniyor</h3>
-                  <p className="text-base font-bold text-slate-400 max-w-sm mx-auto leading-relaxed">
-                    Mewo dünyasına tam erişim sağlamak için bir eğitmen tarafından onaylanman gerekiyor. Bu sırada "Eğitmen Keşfet" kısmından başvurularını kontrol edebilirsin.
-                  </p>
-                </div>
-                <button
-                  onClick={() => onNavigate(AppTab.TEACHERS)}
-                  className="px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-all shadow-xl"
-                >
-                  Eğitmenleri Keşfet
-                </button>
+          {!user.studentEnrollments?.some(e => e.status === 'approved') ? (
+            <div className="flex-1 bg-white dark:bg-slate-900 border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-[3.5rem] flex flex-col items-center justify-center p-12 md:p-20 text-center space-y-8 premium-shadow relative overflow-hidden group">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+              <div className="relative w-32 h-32 bg-brand-50 dark:bg-brand-900/10 rounded-[3rem] flex items-center justify-center text-brand-600 shadow-inner group-hover:scale-110 transition-transform duration-500">
+                <div className="absolute inset-4 bg-brand-100 dark:bg-brand-900/20 rounded-[2rem] animate-pulse"></div>
+                <ShieldCheck className="w-14 h-14 relative z-10" />
               </div>
-            ) : (
-              <>
+              <div className="space-y-4 relative z-10">
+                <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Eğitmen Onayı Bekleniyor</h3>
+                <p className="text-base font-bold text-slate-400 max-w-sm mx-auto leading-relaxed">
+                  Mewo dünyasına tam erişim sağlamak için bir eğitmen tarafından onaylanman gerekiyor. Bu sırada "Eğitmen Keşfet" kısmından başvurularını kontrol edebilirsin.
+                </p>
+              </div>
+              <button
+                onClick={() => onNavigate(AppTab.TEACHERS)}
+                className="px-8 py-4 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-2xl font-black uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-all shadow-xl"
+              >
+                Eğitmenleri Keşfet
+              </button>
+            </div>
+          ) : (
+            <>
+              {/* Optimized Weekly Progress Summary */}
+              <section className="bg-white dark:bg-slate-900 rounded-[3.5rem] p-10 border border-slate-200/60 dark:border-slate-800 premium-shadow relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
+                  <div className="space-y-6">
+                    <div className="flex items-center space-x-3">
+                      <div className="bg-brand-50 dark:bg-brand-900/30 p-3 rounded-2xl text-brand-600">
+                        <Trophy className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Haftalık Gelişim</h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Mevcut Seviyen: {user.level || 1}. Seviye</p>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <div className="flex items-end justify-between">
+                        <span className="text-4xl font-black text-slate-900 dark:text-white">
+                          %{Math.min(user.xp ? Math.round((user.xp / 1000) * 100) : 0, 100)}
+                        </span>
+                        <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest bg-brand-50 dark:bg-brand-900/40 px-3 py-1.5 rounded-full border border-brand-100 dark:border-brand-800">
+                          Sonraki Hedefe 240 XP Kaldı
+                        </span>
+                      </div>
+                      <div className="w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-1 border border-slate-200/50 dark:border-slate-800 shadow-inner">
+                        <div
+                          className="h-full bg-gradient-to-r from-brand-600 to-indigo-500 rounded-full transition-all duration-1000 ease-out"
+                          style={{ width: `${Math.min(user.xp ? Math.round((user.xp / 1000) * 100) : 0, 100)}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-3 shrink-0">
+                    <button
+                      onClick={() => onNavigate(AppTab.PATHWAY)}
+                      className="px-8 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-all shadow-xl group/btn"
+                    >
+                      <span>Yol Haritasını Görüntüle</span>
+                      <ArrowRight className="inline-block ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </button>
+                    <p className="text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                      Toplam {user.xp || 0} Deneyim Puanı Topladın
+                    </p>
+                  </div>
+                </div>
+              </section>
+
+              <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-[660px] relative">
                 <div
                   onClick={() => activeCard !== 'study' && setActiveCard('study')}
                   className={`transition-all duration-700 ease-in-out ${activeCard === 'study' ? 'lg:flex-[4] w-full' : 'lg:flex-[0.15] w-full lg:w-20 cursor-pointer group'}`}
@@ -494,54 +528,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                           {selectedAssignment ? (
                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                              {/* Optimized Weekly Progress Summary */}
-                              <section className="bg-white dark:bg-slate-900 rounded-[3.5rem] p-10 border border-slate-200/60 dark:border-slate-800 premium-shadow relative overflow-hidden group">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
-
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 relative z-10">
-                                  <div className="space-y-6">
-                                    <div className="flex items-center space-x-3">
-                                      <div className="bg-brand-50 dark:bg-brand-900/30 p-3 rounded-2xl text-brand-600">
-                                        <Trophy className="w-6 h-6" />
-                                      </div>
-                                      <div>
-                                        <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Haftalık Gelişim</h3>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Mevcut Seviyen: {user.level || 1}. Seviye</p>
-                                      </div>
-                                    </div>
-
-                                    <div className="space-y-4">
-                                      <div className="flex items-end justify-between">
-                                        <span className="text-4xl font-black text-slate-900 dark:text-white">
-                                          %{Math.min(user.xp ? Math.round((user.xp / 1000) * 100) : 0, 100)}
-                                        </span>
-                                        <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest bg-brand-50 dark:bg-brand-900/40 px-3 py-1.5 rounded-full border border-brand-100 dark:border-brand-800">
-                                          Sonraki Hedefe 240 XP Kaldı
-                                        </span>
-                                      </div>
-                                      <div className="w-full h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-1 border border-slate-200/50 dark:border-slate-800 shadow-inner">
-                                        <div
-                                          className="h-full bg-gradient-to-r from-brand-600 to-indigo-500 rounded-full transition-all duration-1000 ease-out"
-                                          style={{ width: `${Math.min(user.xp ? Math.round((user.xp / 1000) * 100) : 0, 100)}%` }}
-                                        ></div>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <div className="flex flex-col gap-3 shrink-0">
-                                    <button
-                                      onClick={() => onNavigate(AppTab.PATHWAY)}
-                                      className="px-8 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] font-black uppercase tracking-widest text-xs hover:scale-105 active:scale-95 transition-all shadow-xl group/btn"
-                                    >
-                                      <span>Yol Haritasını Görüntüle</span>
-                                      <ArrowRight className="inline-block ml-2 w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
-                                    </button>
-                                    <p className="text-center text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                                      Toplam {user.xp || 0} Deneyim Puanı Topladın
-                                    </p>
-                                  </div>
-                                </div>
-                              </section>
                               <div className="bg-[#FAFAFA] dark:bg-slate-800/50 rounded-[2.5rem] p-8 border-2 border-blue-100 dark:border-slate-800 shadow-inner hover:border-emerald-500/30 transition-colors duration-300">
                                 <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
                                   <div className="flex-1 space-y-4">
@@ -565,7 +551,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                                       </div>
                                     )}
                                   </div>
-
 
                                   {selectedAssignment.files && selectedAssignment.files.length > 0 && (
                                     <div className="w-full md:w-72 space-y-3">
@@ -606,7 +591,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                                 </div>
                               </div>
 
-                              {/* --- INLINE FILE VIEWER --- */}
                               {viewingFile && (
                                 <div className="w-full animate-in fade-in zoom-in duration-500">
                                   <div className="bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl relative border-4 border-slate-800">
@@ -618,12 +602,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                                         <X className="w-6 h-6" />
                                       </button>
                                     </div>
-
                                     <div className="flex justify-center bg-black/20">
                                       {(() => {
                                         const url = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001'}${viewingFile.url}`;
                                         const ext = viewingFile.name.toLowerCase().split('.').pop();
-
                                         if (['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(ext)) {
                                           return (
                                             <video controls autoPlay className="max-h-[600px] w-full object-contain">
@@ -654,7 +636,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                                             </div>
                                           )
                                         }
-
                                         return (
                                           <div className="p-20 text-center text-slate-400">
                                             <FileText className="w-16 h-16 mx-auto mb-6 opacity-20" />
@@ -673,7 +654,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                                   </div>
                                 </div>
                               )}
-
                               <div className="space-y-4">
                                 <div className="flex items-center space-x-3 ml-2">
                                   <div className="w-1.5 h-6 bg-brand-500 rounded-full" />
@@ -752,11 +732,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                     )}
                   </div>
                 </div>
-              </>
-            )}
-          </div>
+              </div>
+            </>
+          )}
 
-          {/* Recommended Words Section */}
           {user.role === 'student' && recommendedWords.length > 0 && (
             <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
               <div className="flex items-center justify-between px-2">
@@ -777,7 +756,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                   <ArrowRight className="w-3 h-3" />
                 </button>
               </div>
-
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                 {recommendedWords.map((word) => (
                   <WordCard
@@ -798,7 +776,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                 onClick={() => onNavigate(AppTab.AI_TUTOR)}>
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-600/20 rounded-full blur-[100px] -mr-40 -mt-40 animate-pulse group-hover:bg-brand-500/30 transition-colors"></div>
                 <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-indigo-600/10 rounded-full blur-[80px] -ml-20 -mb-20"></div>
-
                 <div className="relative z-10 space-y-7">
                   <div className="inline-flex items-center space-x-2 bg-white/10 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-white/10 group-hover:border-white/20 transition-colors backdrop-blur-md">
                     <Sparkles className="w-3.5 h-3.5 text-brand-400 animate-pulse" />
@@ -817,22 +794,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                   </button>
                 </div>
               </section>
-
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 <Translator />
               </div>
             </div>
-
             <div className="lg:col-span-4 space-y-6">
               <LiveTutor />
             </div>
           </div>
         </div>
-      )
-      }
+      )}
       {wordToQuiz && (
         <WordQuizModal wordId={wordToQuiz} onClose={(success) => onQuizComplete(success, wordToQuiz)} />
       )}
-    </div >
+    </div>
   );
 };

@@ -1,7 +1,7 @@
 
 import { User, UserRole } from '../types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export const authService = {
     async getMe(token: string): Promise<User> {

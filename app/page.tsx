@@ -8,6 +8,7 @@ import { AITutor } from '@/components/AITutor';
 import { ResourcesView } from '@/components/ResourcesView';
 import { StudentsView } from '@/components/StudentsView';
 import { TeachersView } from '@/components/TeachersView';
+import { GrammarView } from '@/components/GrammarView';
 import { Login } from '@/components/Login';
 import { AppTab, User } from '@/types';
 
@@ -37,6 +38,9 @@ export default function Home() {
                 break;
             case '/library':
                 setActiveTab(AppTab.LIBRARY);
+                break;
+            case '/grammar':
+                setActiveTab(AppTab.GRAMMAR);
                 break;
             case '/students':
                 setActiveTab(AppTab.STUDENTS);
@@ -94,6 +98,7 @@ export default function Home() {
                 case AppTab.PATHWAY: path = '/roadmap'; break;
                 case AppTab.AI_TUTOR: path = '/tutor'; break;
                 case AppTab.LIBRARY: path = '/library'; break;
+                case AppTab.GRAMMAR: path = '/grammar'; break;
                 case AppTab.STUDENTS: path = '/students'; break;
                 case AppTab.TEACHERS: path = '/teachers'; break;
                 case AppTab.DASHBOARD: path = '/hub'; break;
@@ -152,6 +157,8 @@ export default function Home() {
                 return <StudentsView />;
             case AppTab.TEACHERS:
                 return currentUser ? <TeachersView user={currentUser} /> : null;
+            case AppTab.GRAMMAR:
+                return <GrammarView user={currentUser} />;
             default:
                 return <Dashboard onNavigate={setActiveTab} user={currentUser!} />;
         }
