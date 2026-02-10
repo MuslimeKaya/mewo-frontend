@@ -45,23 +45,30 @@ export default function Home() {
                 setActiveTab(AppTab.TEACHERS);
                 break;
             case '/hub':
-            case '/dashboard': // Legacy support
+            case '/dashboard':
                 setActiveTab(AppTab.DASHBOARD);
                 break;
             default:
-                // Path yoksa localStorage veya query param kontrol et (Eski destek)
-                const params = new URLSearchParams(window.location.search);
-                const urlTab = params.get('tab') as AppTab;
-                const lastTab = localStorage.getItem('mewo_last_tab') as AppTab;
-
-                if (urlTab && Object.values(AppTab).includes(urlTab)) {
-                    setActiveTab(urlTab);
-                } else if (lastTab && Object.values(AppTab).includes(lastTab)) {
-                    setActiveTab(lastTab);
+                if (path === '/') {
+                    // Eğer ana sayfadaysak ve kullanıcı yoksa / olarak kalsın
+                    // Kullanıcı varsa ve / ise Hub'a yönlendirebiliriz (isteğe bağlı)
+                    if (savedUser) {
+                        setActiveTab(AppTab.DASHBOARD);
+                        window.history.replaceState({}, '', '/hub');
+                    }
                 } else {
-                    // Varsayılan olarak Hub'a yönlendir
-                    setActiveTab(AppTab.DASHBOARD);
-                    window.history.replaceState({}, '', '/hub');
+                    const params = new URLSearchParams(window.location.search);
+                    const urlTab = params.get('tab') as AppTab;
+                    const lastTab = localStorage.getItem('mewo_last_tab') as AppTab;
+
+                    if (urlTab && Object.values(AppTab).includes(urlTab)) {
+                        setActiveTab(urlTab);
+                    } else if (lastTab && Object.values(AppTab).includes(lastTab)) {
+                        setActiveTab(lastTab);
+                    } else {
+                        setActiveTab(AppTab.DASHBOARD);
+                        if (savedUser) window.history.replaceState({}, '', '/hub');
+                    }
                 }
                 break;
         }
@@ -78,23 +85,30 @@ export default function Home() {
     useEffect(() => {
         if (!mounted) return;
 
-        // Tab değişince URL'i güncelle (Clean URL)
-        let path = '/hub';
-        switch (activeTab) {
-            case AppTab.PATHWAY: path = '/roadmap'; break;
-            case AppTab.AI_TUTOR: path = '/tutor'; break;
-            case AppTab.LIBRARY: path = '/library'; break;
-            case AppTab.STUDENTS: path = '/students'; break;
-            case AppTab.TEACHERS: path = '/teachers'; break;
-            case AppTab.DASHBOARD: path = '/hub'; break;
+        // Tab veya Kullanıcı durumuna göre URL'i güncelle (Clean URL)
+        let path = '/';
+
+        if (currentUser) {
+            path = '/hub';
+            switch (activeTab) {
+                case AppTab.PATHWAY: path = '/roadmap'; break;
+                case AppTab.AI_TUTOR: path = '/tutor'; break;
+                case AppTab.LIBRARY: path = '/library'; break;
+                case AppTab.STUDENTS: path = '/students'; break;
+                case AppTab.TEACHERS: path = '/teachers'; break;
+                case AppTab.DASHBOARD: path = '/hub'; break;
+            }
         }
 
         if (window.location.pathname !== path) {
+            // Login'den dashboard'a geçerken pushState, diğer tablar arası geçişte pushState
             window.history.pushState({}, '', path);
         }
 
         // Son kalınan tabı kaydet
-        localStorage.setItem('mewo_last_tab', activeTab);
+        if (currentUser) {
+            localStorage.setItem('mewo_last_tab', activeTab);
+        }
 
         if (isDarkMode) {
             document.documentElement.classList.add('dark');
@@ -103,7 +117,7 @@ export default function Home() {
             document.documentElement.classList.remove('dark');
             localStorage.setItem('theme', 'light');
         }
-    }, [isDarkMode, mounted]);
+    }, [activeTab, currentUser, isDarkMode, mounted]);
 
     const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
