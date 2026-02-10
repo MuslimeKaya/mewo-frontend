@@ -1,8 +1,8 @@
-import { API_URL } from './auth';
+import { API_URL, authService } from './auth';
 
 export const grammarService = {
     async getTopics(cefr?: string): Promise<any[]> {
-        const token = localStorage.getItem('mewo_token');
+        const token = authService.getToken();
         if (!token) return [];
 
         const url = cefr ? `${API_URL}/grammar/topics?cefr=${cefr}` : `${API_URL}/grammar/topics`;
@@ -14,7 +14,7 @@ export const grammarService = {
     },
 
     async getTopicDetail(id: string): Promise<any> {
-        const token = localStorage.getItem('mewo_token');
+        const token = authService.getToken();
         if (!token) return null;
 
         const response = await fetch(`${API_URL}/grammar/topic/${id}`, {
@@ -25,7 +25,7 @@ export const grammarService = {
     },
 
     async submitResult(topicId: string, score: number): Promise<any> {
-        const token = localStorage.getItem('mewo_token');
+        const token = authService.getToken();
         if (!token) return null;
 
         const response = await fetch(`${API_URL}/grammar/submit/${topicId}`, {
@@ -41,7 +41,7 @@ export const grammarService = {
     },
 
     async getProgress(): Promise<any[]> {
-        const token = localStorage.getItem('mewo_token');
+        const token = authService.getToken();
         if (!token) return [];
 
         const response = await fetch(`${API_URL}/grammar/progress`, {
