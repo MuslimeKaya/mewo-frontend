@@ -53,9 +53,11 @@ export default function Home() {
                 setActiveTab(AppTab.DASHBOARD);
                 break;
             default:
+                if (path.startsWith('/grammar/')) {
+                    setActiveTab(AppTab.GRAMMAR);
+                    break;
+                }
                 if (path === '/') {
-                    // Eğer ana sayfadaysak ve kullanıcı yoksa / olarak kalsın
-                    // Kullanıcı varsa ve / ise Hub'a yönlendirebiliriz (isteğe bağlı)
                     if (savedUser) {
                         setActiveTab(AppTab.DASHBOARD);
                         window.history.replaceState({}, '', '/hub');
@@ -98,7 +100,11 @@ export default function Home() {
                 case AppTab.PATHWAY: path = '/roadmap'; break;
                 case AppTab.AI_TUTOR: path = '/tutor'; break;
                 case AppTab.LIBRARY: path = '/library'; break;
-                case AppTab.GRAMMAR: path = '/grammar'; break;
+                case AppTab.GRAMMAR:
+                    path = window.location.pathname.startsWith('/grammar/')
+                        ? window.location.pathname
+                        : '/grammar';
+                    break;
                 case AppTab.STUDENTS: path = '/students'; break;
                 case AppTab.TEACHERS: path = '/teachers'; break;
                 case AppTab.DASHBOARD: path = '/hub'; break;

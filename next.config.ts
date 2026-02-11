@@ -38,6 +38,10 @@ const nextConfig: NextConfig = {
             {
                 source: '/grammar',
                 destination: '/',
+            },
+            {
+                source: '/grammar/:path*',
+                destination: '/',
             }
         ];
     },
