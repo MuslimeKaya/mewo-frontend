@@ -102,7 +102,7 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
     }, [topics, loading]);
 
     useEffect(() => {
-        if (typeof window === 'undefined') return;
+        if (typeof window === 'undefined' || loading) return;
 
         if (selectedTopic) {
             const topicId = selectedTopic.kaId || selectedTopic.id;
@@ -111,9 +111,10 @@ export const GrammarView: React.FC<GrammarViewProps> = ({ user }) => {
                 window.history.pushState({}, '', newPath);
             }
         } else if (window.location.pathname.startsWith('/grammar/')) {
+            // Only clear the URL sub-path if loading is finished and no topic stays selected
             window.history.pushState({}, '', '/grammar');
         }
-    }, [selectedTopic]);
+    }, [selectedTopic, loading]);
 
     // Search & Filter State
     const [searchQuery, setSearchQuery] = useState('');

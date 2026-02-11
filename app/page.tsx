@@ -13,7 +13,19 @@ import { Login } from '@/components/Login';
 import { AppTab, User } from '@/types';
 
 export default function Home() {
-    const [activeTab, setActiveTab] = useState<AppTab>(AppTab.DASHBOARD);
+    // Initialize tab from URL to prevent flicker/redirect on refresh
+    const [activeTab, setActiveTab] = useState<AppTab>(() => {
+        if (typeof window === 'undefined') return AppTab.DASHBOARD;
+        const path = window.location.pathname;
+        if (path === '/roadmap' || path === '/pathway') return AppTab.PATHWAY;
+        if (path === '/tutor') return AppTab.AI_TUTOR;
+        if (path === '/library') return AppTab.LIBRARY;
+        if (path === '/grammar' || path.startsWith('/grammar/')) return AppTab.GRAMMAR;
+        if (path === '/students') return AppTab.STUDENTS;
+        if (path === '/teachers') return AppTab.TEACHERS;
+        return AppTab.DASHBOARD;
+    });
+
     const [currentUser, setCurrentUser] = useState<User | null>(null);
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -25,58 +37,14 @@ export default function Home() {
             setCurrentUser(JSON.parse(savedUser));
         }
 
-        // URL Path kontrolü (Rewrites sayesinde /roadmap vb. buraya düşer)
         const path = window.location.pathname;
 
-        switch (path) {
-            case '/roadmap':
-            case '/pathway':
-                setActiveTab(AppTab.PATHWAY);
-                break;
-            case '/tutor':
-                setActiveTab(AppTab.AI_TUTOR);
-                break;
-            case '/library':
-                setActiveTab(AppTab.LIBRARY);
-                break;
-            case '/grammar':
-                setActiveTab(AppTab.GRAMMAR);
-                break;
-            case '/students':
-                setActiveTab(AppTab.STUDENTS);
-                break;
-            case '/teachers':
-                setActiveTab(AppTab.TEACHERS);
-                break;
-            case '/hub':
-            case '/dashboard':
+        // Only redirect root or malformed paths
+        if (path === '/' || path === '') {
+            if (savedUser) {
                 setActiveTab(AppTab.DASHBOARD);
-                break;
-            default:
-                if (path.startsWith('/grammar/')) {
-                    setActiveTab(AppTab.GRAMMAR);
-                    break;
-                }
-                if (path === '/') {
-                    if (savedUser) {
-                        setActiveTab(AppTab.DASHBOARD);
-                        window.history.replaceState({}, '', '/hub');
-                    }
-                } else {
-                    const params = new URLSearchParams(window.location.search);
-                    const urlTab = params.get('tab') as AppTab;
-                    const lastTab = localStorage.getItem('mewo_last_tab') as AppTab;
-
-                    if (urlTab && Object.values(AppTab).includes(urlTab)) {
-                        setActiveTab(urlTab);
-                    } else if (lastTab && Object.values(AppTab).includes(lastTab)) {
-                        setActiveTab(lastTab);
-                    } else {
-                        setActiveTab(AppTab.DASHBOARD);
-                        if (savedUser) window.history.replaceState({}, '', '/hub');
-                    }
-                }
-                break;
+                window.history.replaceState({}, '', '/hub');
+            }
         }
 
         const savedTheme = localStorage.getItem('theme');
