@@ -13,6 +13,9 @@ import { SettingsView } from '@/components/SettingsView';
 import { Login } from '@/components/Login';
 import { AppTab, User } from '@/types';
 import { wordsService } from '@/services/words';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useSocket } from '@/hooks/useSocket';
+import { Toaster } from 'sonner';
 
 export default function Home() {
     // Initialize tab from URL to prevent flicker/redirect on refresh
@@ -23,28 +26,37 @@ export default function Home() {
         if (path === '/tutor') return AppTab.AI_TUTOR;
         if (path === '/library') return AppTab.LIBRARY;
         if (path === '/grammar' || path.startsWith('/grammar/')) return AppTab.GRAMMAR;
-        if (path === '/students') return AppTab.STUDENTS;
+        if (path === '/students' || path.startsWith('/students/')) return AppTab.STUDENTS;
         if (path === '/teachers') return AppTab.TEACHERS;
         if (path === '/settings') return AppTab.SETTINGS;
+        if (path === '/hub' || path.startsWith('/hub/')) return AppTab.DASHBOARD;
         return AppTab.DASHBOARD;
     });
 
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
+    const { user: currentUser, setUser: setCurrentUser, logout: authLogout } = useAuthStore();
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [mounted, setMounted] = useState(false);
 
+    // Initialize Socket
+    useSocket();
+
     useEffect(() => {
         setMounted(true);
-        const savedUser = localStorage.getItem('mewo_user');
-        if (savedUser) {
-            setCurrentUser(JSON.parse(savedUser));
+        const savedUserStr = localStorage.getItem('mewo_user');
+        if (savedUserStr && !currentUser) {
+            try {
+                const parsed = JSON.parse(savedUserStr);
+                setCurrentUser(parsed);
+            } catch (e) {
+                console.error('Failed to parse saved user', e);
+            }
         }
 
         const path = window.location.pathname;
 
         // Only redirect root or malformed paths
         if (path === '/' || path === '') {
-            if (savedUser) {
+            if (savedUserStr || currentUser) {
                 setActiveTab(AppTab.DASHBOARD);
                 window.history.replaceState({}, '', '/hub');
             }
@@ -89,10 +101,18 @@ export default function Home() {
                         ? window.location.pathname
                         : '/grammar';
                     break;
-                case AppTab.STUDENTS: path = '/students'; break;
+                case AppTab.STUDENTS:
+                    path = window.location.pathname.startsWith('/students/')
+                        ? window.location.pathname
+                        : '/students';
+                    break;
                 case AppTab.TEACHERS: path = '/teachers'; break;
                 case AppTab.SETTINGS: path = '/settings'; break;
-                case AppTab.DASHBOARD: path = '/hub'; break;
+                case AppTab.DASHBOARD:
+                    path = window.location.pathname.startsWith('/hub/')
+                        ? window.location.pathname
+                        : '/hub';
+                    break;
             }
         }
 
@@ -124,9 +144,8 @@ export default function Home() {
     };
 
     const handleLogout = () => {
-        setCurrentUser(null);
+        authLogout();
         localStorage.removeItem('mewo_user');
-        localStorage.removeItem('mewo_last_tab');
         wordsService.clearCache();
         // Clear all session specific data
         Object.keys(localStorage).forEach(key => {
@@ -168,6 +187,7 @@ export default function Home() {
 
     return (
         <div className="min-h-screen transition-colors duration-300">
+            <Toaster position="top-right" richColors closeButton />
             <Layout
                 activeTab={activeTab}
                 onTabChange={setActiveTab}
@@ -176,9 +196,7 @@ export default function Home() {
                 user={currentUser}
                 onLogout={handleLogout}
             >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-32 md:pb-10">
-                    {renderPage()}
-                </div>
+                {renderPage()}
             </Layout>
         </div>
     );

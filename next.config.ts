@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
                 destination: '/',
             },
             {
+                source: '/hub/:path*',
+                destination: '/',
+            },
+            {
                 source: '/dashboard',
                 destination: '/',
             },
@@ -29,6 +33,10 @@ const nextConfig: NextConfig = {
             },
             {
                 source: '/students',
+                destination: '/',
+            },
+            {
+                source: '/students/:path*',
                 destination: '/',
             },
             {

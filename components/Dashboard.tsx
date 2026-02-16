@@ -68,15 +68,15 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
       e.stopPropagation();
       onToggle();
     }}
-    className={`flex items-center justify-between px-4 py-3 rounded-2xl border-2 transition-all cursor-pointer group/word min-h-[4.5rem] relative overflow-hidden ${isLearned
+    className={`flex items-center justify-between px-2.5 py-2.5 rounded-xl border-2 transition-all cursor-pointer group/word min-h-[4rem] relative overflow-hidden ${isLearned
       ? 'bg-brand-600 border-brand-500 text-white shadow-lg shadow-brand-500/20'
       : isNew
         ? 'bg-emerald-50/40 dark:bg-emerald-900/10 border-emerald-200/50 dark:border-emerald-800/50 shadow-lg shadow-emerald-500/5'
         : 'bg-[#F8F9FA] dark:bg-slate-800 border-blue-100 dark:border-slate-700 shadow-sm hover:border-emerald-500 hover:shadow-emerald-500/10 hover:bg-white'
       } hover:shadow-xl hover:-translate-y-0.5 active:scale-95 duration-300`}
   >
-    <div className="min-w-0 pr-2 relative z-10 flex flex-col justify-center">
-      <div className="flex items-center gap-1.5 mb-1.5">
+    <div className="min-w-0 pr-1.5 relative z-10 flex flex-col justify-center">
+      <div className="flex items-center gap-1.5 mb-1">
         <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md ${isLearned ? 'bg-white/20 text-white' : isNew ? 'bg-emerald-100 text-emerald-600' : 'bg-brand-100 dark:bg-brand-900/30 text-brand-600'} inline-block tracking-tighter`}>
           {word.cefr || '??'}
         </span>
@@ -96,24 +96,25 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
           </button>
         )}
       </div>
-      <p className="text-sm font-black truncate leading-tight">{word.en}</p>
+      <p className="text-xs font-black truncate leading-tight mb-0.5">{word.en}</p>
+      <p className={`text-[10px] font-bold leading-tight truncate ${isLearned ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{word.tr}</p>
     </div>
-    <div className="flex items-center space-x-2 relative z-10">
+    <div className="flex items-center space-x-1 relative z-10">
       {word.teachers && word.teachers.length > 0 && (
-        <div className="flex -space-x-1.5 overflow-hidden">
+        <div className="flex -space-x-1 overflow-hidden">
           {word.teachers.map((t: any, idx: number) => (
             <div
               key={idx}
               title={t.firstName + ' ' + t.lastName}
-              className={`w-4 h-4 rounded-full border border-white dark:border-slate-900 flex items-center justify-center text-[6px] font-black uppercase ${isLearned ? 'bg-white/20 text-white' : 'bg-indigo-500 text-white'}`}
+              className={`w-3.5 h-3.5 rounded-full border border-white dark:border-slate-900 flex items-center justify-center text-[6px] font-black uppercase ${isLearned ? 'bg-white/20 text-white' : 'bg-indigo-500 text-white'}`}
             >
               {t.firstName?.[0]}
             </div>
           ))}
         </div>
       )}
-      <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 transition-all ${isLearned ? 'bg-white/20' : isNew ? 'bg-emerald-100 dark:bg-emerald-800' : 'bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800'}`}>
-        {isLearned ? <Check className="w-5 h-5 text-white" /> : isNew ? <Sparkles className="w-5 h-5 text-emerald-500" /> : <Sparkles className="w-4 h-4 text-brand-500" />}
+      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${isLearned ? 'bg-white/20' : isNew ? 'bg-emerald-100 dark:bg-emerald-800' : 'bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800'}`}>
+        {isLearned ? <Check className="w-4 h-4 text-white" /> : isNew ? <Sparkles className="w-4 h-4 text-emerald-500" /> : <Sparkles className="w-3 h-3 text-brand-500" />}
       </div>
     </div>
     {isNew && !isLearned && (
@@ -133,10 +134,37 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
   const [learnedWordIds, setLearnedWordIds] = useState<Set<string>>(new Set());
   const [readWordIds, setReadWordIds] = useState<Set<string>>(new Set());
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [activeCard, setActiveCard] = useState<'study' | 'history'>('study');
-  const [activeTeacherCard, setActiveTeacherCard] = useState<'selector' | 'list' | 'history'>('selector');
+  // Handle Initial State from URL
+  const [activeCard, setActiveCard] = useState<'study' | 'history'>(() => {
+    if (typeof window === 'undefined') return 'study';
+    if (window.location.pathname === '/hub/assignments') return 'history';
+    return 'study';
+  });
+
+  const [activeTeacherCard, setActiveTeacherCard] = useState<'selector' | 'list' | 'history'>(() => {
+    if (typeof window === 'undefined') return 'selector';
+    const path = window.location.pathname;
+    if (path === '/hub/vocabulary') return 'list';
+    if (path === '/hub/assignments') return 'history';
+    return 'selector';
+  });
+
   const [viewingFile, setViewingFile] = useState<any | null>(null);
   const [wordToQuiz, setWordToQuiz] = useState<string | null>(null);
+
+  // Sync Teacher URL
+  const updateTeacherCard = (card: 'selector' | 'list' | 'history') => {
+    setActiveTeacherCard(card);
+    const path = card === 'selector' ? '/hub/create' : card === 'list' ? '/hub/vocabulary' : '/hub/assignments';
+    window.history.pushState({}, '', path);
+  };
+
+  // Sync Student URL
+  const updateStudentCard = (card: 'study' | 'history') => {
+    setActiveCard(card);
+    const path = card === 'study' ? '/hub/study' : '/hub/assignments';
+    window.history.pushState({}, '', path);
+  };
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -149,34 +177,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
     setRefreshTrigger(prev => prev + 1);
   };
 
-  useEffect(() => {
-    // Polling for teacher approval if student is not yet approved
-    if (user.role !== 'student' || !onRefreshUser) return;
 
-    const isApproved = user.studentEnrollments?.some(e => e.status === 'approved');
-    if (isApproved) return;
-
-    const interval = setInterval(async () => {
-      try {
-        const token = authService.getToken();
-        if (!token) return;
-        const freshUser = await authService.getMe(token);
-        const nowApproved = freshUser.studentEnrollments?.some(e => e.status === 'approved');
-
-        if (nowApproved) {
-          // If status changed to approved, update the global user state
-          const fullUser = { ...freshUser, access_token: token };
-          localStorage.setItem('mewo_user', JSON.stringify(fullUser));
-          onRefreshUser(fullUser);
-          triggerRefresh();
-        }
-      } catch (e) {
-        console.error('[Dashboard] Status check failed:', e);
-      }
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, [user, onRefreshUser]);
 
   useEffect(() => {
     if (user.role === 'teacher') {
@@ -285,7 +286,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
   };
 
   return (
-    <div className="px-4 py-2 md:px-6 md:py-3 space-y-3 md:space-y-4 animate-in fade-in duration-700">
+    <div className="space-y-6 animate-in fade-in duration-700">
       {/* Minimalist Greeting Section */}
       <div className="mb-0">
         <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
@@ -297,7 +298,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
         <div className="space-y-6">
           <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-[650px] relative">
             <div
-              onClick={() => activeTeacherCard !== 'selector' && setActiveTeacherCard('selector')}
+              onClick={() => activeTeacherCard !== 'selector' && updateTeacherCard('selector')}
               className={`transition-all duration-700 ease-in-out ${activeTeacherCard === 'selector'
                 ? 'lg:flex-[3] w-full'
                 : 'lg:flex-[0.15] w-full lg:w-20 cursor-pointer group'
@@ -327,7 +328,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
             </div>
 
             <div
-              onClick={() => activeTeacherCard !== 'list' && setActiveTeacherCard('list')}
+              onClick={() => activeTeacherCard !== 'list' && updateTeacherCard('list')}
               className={`transition-all duration-700 ease-in-out ${activeTeacherCard === 'list'
                 ? 'lg:flex-[3] w-full'
                 : 'lg:flex-[0.15] w-full lg:w-20 cursor-pointer group'
@@ -365,7 +366,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
             </div>
 
             <div
-              onClick={() => activeTeacherCard !== 'history' && setActiveTeacherCard('history')}
+              onClick={() => activeTeacherCard !== 'history' && updateTeacherCard('history')}
               className={`transition-all duration-700 ease-in-out ${activeTeacherCard === 'history'
                 ? 'lg:flex-[3] w-full'
                 : 'lg:flex-[0.15] w-full lg:w-20 cursor-pointer group'
@@ -440,7 +441,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
             <>
               <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-[660px] relative">
                 <div
-                  onClick={() => activeCard !== 'study' && setActiveCard('study')}
+                  onClick={() => activeCard !== 'study' && updateStudentCard('study')}
                   className={`transition-all duration-700 ease-in-out ${activeCard === 'study' ? 'lg:flex-[4] w-full' : 'lg:flex-[0.15] w-full lg:w-20 cursor-pointer group'}`}
                 >
                   <div className={`bg-[#FAFAFA] dark:bg-slate-900 border-2 border-blue-200 dark:border-slate-800 rounded-[3rem] h-full premium-shadow relative overflow-hidden transition-all duration-500`}>
@@ -459,8 +460,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                         </div>
                       </div>
                     ) : (
-                      <div className="p-6 h-full flex flex-col animate-in fade-in duration-700">
-                        <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-50 dark:border-slate-800/50">
+                      <div className="p-8 h-full flex flex-col animate-in fade-in duration-700">
+                        <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-50 dark:border-slate-800/50">
                           <div className="flex items-center space-x-3">
                             <div className="bg-brand-600 p-2.5 rounded-xl shadow-lg shadow-brand-500/20">
                               <Target className="w-5 h-5 text-white" />
@@ -469,8 +470,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                               <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">
                                 {selectedAssignment ? 'Ödev Detayı' : 'Çalışma Listesi'}
                               </h3>
-                              <p className="text-[10px] font-black text-brand-600 uppercase tracking-widest mt-2">
-                                {selectedAssignment ? selectedAssignment.title : 'Aktif Kelimelerin'}
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">
+                                {selectedAssignment ? selectedAssignment.title : `${teacherWords.length} AKTİF KELİME`}
                               </p>
                             </div>
                           </div>
@@ -650,7 +651,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                 </div>
 
                 <div
-                  onClick={() => activeCard !== 'history' && setActiveCard('history')}
+                  onClick={() => activeCard !== 'history' && updateStudentCard('history')}
                   className={`transition-all duration-700 ease-in-out ${activeCard === 'history' ? 'lg:flex-[4] w-full' : 'lg:flex-[0.15] w-full lg:w-20 cursor-pointer group'}`}
                 >
                   <div className={`bg-[#FAFAFA] dark:bg-slate-900 border-2 border-blue-200 dark:border-slate-800 rounded-[3rem] h-full premium-shadow relative overflow-hidden transition-all duration-500`}>
@@ -687,7 +688,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                           userId={user.id}
                           onSelect={(a) => {
                             setSelectedAssignment(a);
-                            setActiveCard('study');
+                            updateStudentCard('study');
                           }}
                           showDelete={false}
                         />

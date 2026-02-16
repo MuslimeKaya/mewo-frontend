@@ -19,6 +19,35 @@ export const StudentsView: React.FC = () => {
     const [fetchingProgress, setFetchingProgress] = useState(false);
     const itemsPerPage = 10;
 
+    // Handle initial URL check
+    useEffect(() => {
+        const path = window.location.pathname;
+        const match = path.match(/\/students\/([a-f\d-]+)/i);
+        if (match && match[1] && students.length > 0) {
+            const student = students.find(s => s.id === match[1]);
+            if (student) handleSelectStudent(student);
+        }
+    }, [students]);
+
+    const handleSelectStudent = async (student: any) => {
+        setSelectedStudent(student);
+        window.history.pushState({}, '', `/students/${student.id}`);
+        setFetchingProgress(true);
+        try {
+            const progress = await authService.getStudentProgressForTeacher(student.id);
+            setStudentProgress(progress);
+        } catch (e) {
+            console.error('Progress error:', e);
+        } finally {
+            setFetchingProgress(false);
+        }
+    };
+
+    const handleCloseModal = () => {
+        setSelectedStudent(null);
+        window.history.pushState({}, '', `/students`);
+    };
+
 
     useEffect(() => {
         if (activeTab === 'roster') {
@@ -93,7 +122,7 @@ export const StudentsView: React.FC = () => {
 
 
     return (
-        <div className="max-w-[1600px] mx-auto space-y-3 animate-in fade-in duration-500 font-sans">
+        <div className="space-y-6 animate-in fade-in duration-500 font-sans">
             {/* Minimal Header */}
             <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
                 <div className="flex items-center space-x-4">
@@ -153,7 +182,7 @@ export const StudentsView: React.FC = () => {
 
 
             {error ? (
-                <div className="py-12 flex justify-center">
+                <div className="py-12 flex justify-center min-h-[60vh]">
                     <div className="bg-rose-50 dark:bg-rose-900/10 text-rose-600 px-6 py-4 rounded-xl flex flex-col items-center gap-2 max-w-sm text-center">
                         <p className="text-xs font-bold">{error}</p>
                         <button
@@ -165,72 +194,63 @@ export const StudentsView: React.FC = () => {
                     </div>
                 </div>
             ) : activeTab === 'roster' ? (
-                loading ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 12].map(i => (
-                            <div key={i} className="h-[6vh] bg-white dark:bg-slate-900 rounded-2xl animate-pulse border border-slate-50 dark:border-slate-800" />
-                        ))}
-                    </div>
-                ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
-                        {filteredStudents.map((student) => (
-                            <div
-                                key={student.id}
-                                onClick={async () => {
-                                    setSelectedStudent(student);
-                                    setFetchingProgress(true);
-                                    try {
-                                        const progress = await authService.getStudentProgressForTeacher(student.id);
-                                        setStudentProgress(progress);
-                                    } catch (e) {
-                                        console.error('Progress error:', e);
-                                    } finally {
-                                        setFetchingProgress(false);
-                                    }
-                                }}
-                                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-2 px-3 hover:border-brand-500/50 transition-all cursor-pointer group shadow-sm hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-3 relative overflow-hidden h-[6vh]"
-                            >
-                                <div className="w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shrink-0 relative">
-                                    {student.avatar ? (
-                                        <img
-                                            src={student.avatar.startsWith('http') ? student.avatar : `${API_URL.replace('/api', '')}${student.avatar}`}
-                                            className="w-full h-full object-cover"
-                                            alt=""
-                                        />
-                                    ) : (
-                                        <span className="text-[10px] font-black text-brand-600/30 uppercase">{student.firstName?.[0]}</span>
-                                    )}
-                                    {student.lastActiveAt && (
-                                        <span className="absolute bottom-0.5 right-0.5 w-2 h-2 bg-emerald-500 border border-white dark:border-slate-900 rounded-full" />
-                                    )}
-                                </div>
+                <div className="min-h-[60vh]">
+                    {loading ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, 12].map(i => (
+                                <div key={i} className="h-[6vh] bg-white dark:bg-slate-900 rounded-2xl animate-pulse border border-slate-50 dark:border-slate-800" />
+                            ))}
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                            {filteredStudents.map((student) => (
+                                <div
+                                    key={student.id}
+                                    onClick={() => handleSelectStudent(student)}
+                                    className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-2 px-3 hover:border-brand-500/50 transition-all cursor-pointer group shadow-sm hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-3 relative overflow-hidden h-[6vh]"
+                                >
+                                    <div className="w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shrink-0 relative">
+                                        {student.avatar ? (
+                                            <img
+                                                src={student.avatar.startsWith('http') ? student.avatar : `${API_URL.replace('/api', '')}${student.avatar}`}
+                                                className="w-full h-full object-cover"
+                                                alt=""
+                                            />
+                                        ) : (
+                                            <span className="text-[10px] font-black text-brand-600/30 uppercase">{student.firstName?.[0]}</span>
+                                        )}
+                                        {student.lastActiveAt && (
+                                            <span className="absolute bottom-0.5 right-0.5 w-2 h-2 bg-emerald-500 border border-white dark:border-slate-900 rounded-full" />
+                                        )}
+                                    </div>
 
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="text-[11px] font-black text-slate-900 dark:text-white truncate">
-                                        {student.firstName} {student.lastName}
-                                    </h3>
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-[8px] font-black text-brand-600">Lv.{student.level || 1}</span>
-                                        <span className="text-[8px] font-bold text-slate-400 tabular-nums">{student.xp || 0} XP</span>
+                                    <div className="min-w-0 flex-1">
+                                        <h3 className="text-[11px] font-black text-slate-900 dark:text-white truncate">
+                                            {student.firstName} {student.lastName}
+                                        </h3>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-[8px] font-black text-brand-600">Lv.{student.level || 1}</span>
+                                            <span className="text-[8px] font-bold text-slate-400 tabular-nums">{student.xp || 0} XP</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <ArrowUpRight className="w-3 h-3 text-brand-500" />
                                     </div>
                                 </div>
+                            ))}
 
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <ArrowUpRight className="w-3 h-3 text-brand-500" />
+                            {filteredStudents.length === 0 && (
+                                <div className="col-span-full py-16 text-center opacity-60">
+                                    <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
+                                        <Users className="w-6 h-6" />
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Öğrenci bulunamadı</p>
                                 </div>
-                            </div>
-                        ))}
-
-                        {filteredStudents.length === 0 && (
-                            <div className="col-span-full py-16 text-center opacity-60">
-                                <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
-                                    <Users className="w-6 h-6" />
-                                </div>
-                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Öğrenci bulunamadı</p>
-                            </div>
-                        )}
-                    </div>
-                )
+                            )}
+                        </div>
+                    )}
+                </div>
             ) : (
                 <div className="space-y-3">
                     {pendingRequests.map((request) => (
@@ -275,8 +295,8 @@ export const StudentsView: React.FC = () => {
 
             {/* Compact Flat Pagination - Zero gap to footer */}
             {activeTab === 'roster' && !error && (
-                <div className="sticky bottom-0 z-50 flex items-center justify-center py-2 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
-                    <div className="max-w-[1600px] w-full flex items-center justify-between px-6">
+                <div className="sticky bottom-0 z-50 flex items-center justify-center py-2 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 -mx-4 md:-mx-6 px-4 md:px-6">
+                    <div className="max-w-7xl w-full flex items-center justify-between">
                         <div className="hidden sm:flex items-center gap-3">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">SAYFA</span>
                             <span className="text-[11px] font-black text-slate-900 dark:text-white tabular-nums">
@@ -306,15 +326,15 @@ export const StudentsView: React.FC = () => {
                 </div>
             )}
 
-            {/* Premium Student Progress Modal */}
+            {/* Compact Student Progress Modal */}
             {selectedStudent && (
                 <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-xl animate-in fade-in duration-700" onClick={() => setSelectedStudent(null)} />
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden border-8 border-white dark:border-slate-800 relative z-10 animate-in zoom-in-95 duration-500">
-                        {/* Modal Header */}
-                        <div className="p-10 border-b-2 border-slate-50 dark:border-slate-800/50 flex flex-col md:flex-row md:items-center justify-between gap-8 bg-slate-50/50 dark:bg-slate-900/50">
-                            <div className="flex items-center space-x-8">
-                                <div className="w-24 h-24 bg-brand-600 rounded-[2.5rem] overflow-hidden flex items-center justify-center text-white text-3xl font-black shadow-2xl shadow-brand-500/40 shrink-0 ring-4 ring-white dark:ring-slate-800">
+                    <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-500" onClick={handleCloseModal} />
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-800 relative z-10 animate-in zoom-in-95 duration-300 max-h-[85vh] flex flex-col">
+                        {/* Modal Header - Compact */}
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/30 dark:bg-slate-900/50">
+                            <div className="flex items-center space-x-5">
+                                <div className="w-14 h-14 bg-brand-600 rounded-2xl overflow-hidden flex items-center justify-center text-white text-xl font-black shadow-lg shadow-brand-500/20 shrink-0">
                                     {selectedStudent.avatar ? (
                                         <img
                                             src={selectedStudent.avatar.startsWith('http') ? selectedStudent.avatar : `${API_URL.replace('/api', '')}${selectedStudent.avatar}`}
@@ -322,98 +342,75 @@ export const StudentsView: React.FC = () => {
                                             alt=""
                                         />
                                     ) : (
-                                        <span className="uppercase">{selectedStudent.firstName[0]}{selectedStudent.lastName?.[0]}</span>
+                                        <span className="uppercase">{selectedStudent.firstName[0]}</span>
                                     )}
                                 </div>
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-3">
-                                        <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">
-                                            {selectedStudent.firstName} {selectedStudent.lastName}
-                                        </h3>
-                                        <span className={`w-3 h-3 rounded-full ${selectedStudent.lastActiveAt ? 'bg-emerald-500' : 'bg-slate-300'}`} />
-                                    </div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.3em]">ACADEMIC PERFORMANCE TRACKING</p>
-                                    <div className="flex gap-4 pt-2">
-                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
-                                            <Trophy className="w-3.5 h-3.5 text-amber-500" />
-                                            <span className="text-[11px] font-black text-slate-700 dark:text-slate-300">{selectedStudent.xp || 0} XP</span>
-                                        </div>
-                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
-                                            <GraduationCap className="w-3.5 h-3.5 text-brand-600" />
-                                            <span className="text-[11px] font-black text-slate-700 dark:text-slate-300">Lv. {selectedStudent.level || 1}</span>
-                                        </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                                        {selectedStudent.firstName} {selectedStudent.lastName}
+                                    </h3>
+                                    <div className="flex gap-3 mt-1">
+                                        <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest">Lv. {selectedStudent.level || 1}</span>
+                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{selectedStudent.xp || 0} XP</span>
                                     </div>
                                 </div>
                             </div>
                             <button
-                                onClick={() => setSelectedStudent(null)}
-                                className="absolute top-10 right-10 p-4 bg-white dark:bg-slate-800 hover:bg-rose-500 hover:text-white dark:hover:bg-rose-600 rounded-[2rem] transition-all duration-500 shadow-xl shadow-slate-200/50 dark:shadow-none active:scale-95 group"
+                                onClick={handleCloseModal}
+                                className="p-2 hover:bg-rose-50 dark:hover:bg-rose-900/20 text-slate-400 hover:text-rose-500 rounded-xl transition-colors"
                             >
-                                <X className="w-6 h-6 text-slate-400 group-hover:text-white transition-colors" />
+                                <X className="w-5 h-5" />
                             </button>
                         </div>
 
-                        {/* Modal Content */}
-                        <div className="p-12 space-y-10">
+                        {/* Modal Content - Scrollable but no scrollbar visible */}
+                        <div className="p-8 overflow-y-auto flex-1 scrollbar-hide" style={{ msOverflowStyle: 'none', scrollbarWidth: 'none' }}>
+                            <style dangerouslySetInnerHTML={{ __html: '.scrollbar-hide::-webkit-scrollbar { display: none; }' }} />
                             {fetchingProgress ? (
-                                <div className="py-24 flex flex-col items-center justify-center space-y-6">
-                                    <div className="relative">
-                                        <div className="w-16 h-16 border-8 border-slate-100 dark:border-slate-800 rounded-full"></div>
-                                        <div className="w-16 h-16 border-8 border-brand-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
-                                    </div>
-                                    <p className="text-xs font-black text-slate-300 uppercase tracking-[0.4em]">Decrypting Data...</p>
+                                <div className="py-12 flex flex-col items-center justify-center space-y-4">
+                                    <div className="w-10 h-10 border-4 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Veriler Yükleniyor...</p>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     {studentProgress.length > 0 ? studentProgress.map((p, idx) => (
-                                        <div key={idx} className="bg-slate-50 dark:bg-slate-800/30 p-8 rounded-[3rem] border-2 border-slate-50 dark:border-slate-800/50 group hover:border-brand-500/30 transition-all duration-500 hover:shadow-2xl hover:bg-white dark:hover:bg-slate-800 translate-y-0 hover:-translate-y-2">
-                                            <div className="flex items-center justify-between mb-8">
-                                                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center font-black text-xl text-brand-600 shadow-xl shadow-slate-200/40 dark:shadow-none ring-1 ring-slate-100 dark:ring-slate-800 group-hover:scale-110 transition-transform">
-                                                    {p.level}
+                                        <div key={idx} className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-brand-500/30 transition-all">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="text-[10px] font-black text-brand-600 px-2 py-1 bg-white dark:bg-slate-900 rounded-lg shadow-sm">
+                                                    Seviye {p.level}
                                                 </div>
-                                                <div className="text-right">
-                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Score</p>
-                                                    <span className={`text-xl font-black ${p.percentage === 100 ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>%{p.percentage}</span>
-                                                </div>
+                                                <span className="text-sm font-black text-slate-900 dark:text-white">%{p.percentage}</span>
                                             </div>
-                                            <div className="space-y-4">
-                                                <div className="flex justify-between items-end">
-                                                    <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase">Vocabulary</h4>
-                                                    <span className="text-[10px] font-bold text-slate-400">{p.learned}/{p.total}</span>
+                                            <div className="space-y-3">
+                                                <div className="flex justify-between items-center px-0.5">
+                                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Kelime Bilgisi</span>
+                                                    <span className="text-[10px] font-bold text-slate-500">{p.learned}/{p.total}</span>
                                                 </div>
-                                                <div className="w-full h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 ring-1 ring-slate-100/50 dark:ring-slate-700/50">
+                                                <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
                                                     <div
-                                                        className={`h-full rounded-full transition-all duration-1000 ${p.percentage === 100 ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-brand-600 shadow-[0_0_15px_rgba(79,70,229,0.4)]'}`}
+                                                        className={`h-full rounded-full transition-all duration-1000 ${p.percentage === 100 ? 'bg-emerald-500' : 'bg-brand-600'}`}
                                                         style={{ width: `${p.percentage}%` }}
                                                     ></div>
                                                 </div>
                                             </div>
                                         </div>
                                     )) : (
-                                        <div className="col-span-full py-20 flex flex-col items-center justify-center text-center opacity-20">
-                                            <BookOpen className="w-12 h-12 mb-4" />
-                                            <p className="text-xs font-black uppercase tracking-widest">No activity data found for this student</p>
+                                        <div className="col-span-full py-12 flex flex-col items-center justify-center text-center opacity-30">
+                                            <BookOpen className="w-8 h-8 mb-3" />
+                                            <p className="text-[10px] font-bold uppercase tracking-widest">Henüz aktivite verisi bulunmuyor</p>
                                         </div>
                                     )}
                                 </div>
                             )}
                         </div>
 
-                        {/* Modal Footer */}
-                        <div className="p-8 px-12 bg-slate-50 dark:bg-slate-800/30 border-t-2 border-slate-50 dark:border-slate-800/50 flex flex-col sm:flex-row items-center justify-between gap-6">
-                            <div className="flex items-center gap-6">
-                                <div className="flex flex-col">
-                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status Report</span>
-                                    <span className="text-xs font-bold text-emerald-500 flex items-center gap-2 uppercase tracking-tighter">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> System Synchronized
-                                    </span>
-                                </div>
-                            </div>
+                        {/* Modal Footer - Compact */}
+                        <div className="p-6 bg-slate-50 dark:bg-slate-900/50 border-t border-slate-100 dark:border-slate-800 flex justify-end">
                             <button
-                                onClick={() => setSelectedStudent(null)}
-                                className="w-full sm:w-auto px-16 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] text-xs font-black uppercase tracking-[0.3em] hover:scale-105 active:scale-95 transition-all duration-500 shadow-2xl shadow-slate-900/20 dark:shadow-white/10"
+                                onClick={handleCloseModal}
+                                className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
                             >
-                                CLOSE PERSPECTIVE
+                                Kapat
                             </button>
                         </div>
                     </div>

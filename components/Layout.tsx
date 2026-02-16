@@ -227,7 +227,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
         </>
       )}
 
-      <main className="flex-1 w-full max-w-7xl mx-auto overflow-x-hidden flex flex-col">
+      <main className="flex-1 w-full max-w-7xl mx-auto overflow-x-hidden flex flex-col py-6 md:py-10 px-4 md:px-6">
         <div className="page-transition flex-1">
           {children}
         </div>
