@@ -321,6 +321,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                 ) : (
                   <div className="h-full p-8 animate-in fade-in zoom-in duration-700">
                     <TeacherWordList
+                      userId={user.id}
                       refreshTrigger={refreshTrigger}
                       onAssignmentSent={() => {
                         fetchAssignments();

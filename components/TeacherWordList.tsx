@@ -3,12 +3,14 @@ import { Target, Trash2, Loader2, Sparkles, Zap, Edit3, Check, X, FileText, Type
 import { wordsService, Word } from '../services/words';
 
 interface TeacherWordListProps {
+    userId?: string;
     refreshTrigger: number;
     onAssignmentSent?: () => void;
     onWordRemoved?: () => void;
 }
 
 export const TeacherWordList: React.FC<TeacherWordListProps> = ({
+    userId,
     refreshTrigger,
     onAssignmentSent,
     onWordRemoved
@@ -20,7 +22,27 @@ export const TeacherWordList: React.FC<TeacherWordListProps> = ({
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+
+    // Load draft on mount
+    useEffect(() => {
+        if (typeof window !== 'undefined' && userId) {
+            const savedTitle = localStorage.getItem(`mewo_assignment_draft_title_${userId}`);
+            const savedDesc = localStorage.getItem(`mewo_assignment_draft_desc_${userId}`);
+            if (savedTitle) setTitle(savedTitle);
+            if (savedDesc) setDescription(savedDesc);
+        }
+    }, [userId]);
+
+    // Save draft on change
+    useEffect(() => {
+        if (typeof window !== 'undefined' && userId) {
+            localStorage.setItem(`mewo_assignment_draft_title_${userId}`, title);
+            localStorage.setItem(`mewo_assignment_draft_desc_${userId}`, description);
+        }
+    }, [title, description, userId]);
+
     const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         fetchMySelections();
@@ -28,6 +50,7 @@ export const TeacherWordList: React.FC<TeacherWordListProps> = ({
 
     const fetchMySelections = async () => {
         setLoading(true);
+        setError(null);
         try {
             const results = await wordsService.getMySelections();
             if (Array.isArray(results)) {
@@ -37,7 +60,7 @@ export const TeacherWordList: React.FC<TeacherWordListProps> = ({
             }
         } catch (err: any) {
             console.error('Seçimler yüklenirken hata:', err);
-            // Error is already logged in wordsService
+            setError('Seçimleriniz yüklenemedi. Lütfen sayfayı yenileyin.');
         } finally {
             setLoading(false);
         }
@@ -45,12 +68,14 @@ export const TeacherWordList: React.FC<TeacherWordListProps> = ({
 
     const handleUnselect = async (wordId: string) => {
         setActionLoading(wordId);
+        setError(null);
         try {
             await wordsService.unselectWord(wordId);
             setMySelections(prev => prev.filter(w => w.id !== wordId));
             if (onWordRemoved) onWordRemoved();
-        } catch (err) {
+        } catch (err: any) {
             console.error('Kaldırma hatası:', err);
+            setError('Kelime kaldırılamadı.');
         } finally {
             setActionLoading(null);
         }
@@ -59,6 +84,7 @@ export const TeacherWordList: React.FC<TeacherWordListProps> = ({
     const handleSendToStudents = async () => {
         if (mySelections.length === 0) return;
         setSendLoading(true);
+        setError(null);
         try {
             await wordsService.sendAssignment(mySelections, title, description, selectedFiles.length > 0 ? selectedFiles : undefined);
             if (onAssignmentSent) onAssignmentSent();
@@ -66,11 +92,16 @@ export const TeacherWordList: React.FC<TeacherWordListProps> = ({
             setIsSent(true);
             setTitle('');
             setDescription('');
+            if (userId) {
+                localStorage.removeItem(`mewo_assignment_draft_title_${userId}`);
+                localStorage.removeItem(`mewo_assignment_draft_desc_${userId}`);
+            }
             setSelectedFiles([]);
             setMySelections([]); // Listeyi temizle
             setTimeout(() => setIsSent(false), 2000);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Gönderim hatası:', err);
+            setError(err.message || 'Ödev gönderilirken bir hata oluştu.');
         } finally {
             setSendLoading(false);
         }
@@ -78,6 +109,13 @@ export const TeacherWordList: React.FC<TeacherWordListProps> = ({
 
     return (
         <div className="bg-[#FAFAFA] dark:bg-slate-900 border-2 border-blue-200 dark:border-slate-800 rounded-[3rem] p-8 premium-shadow space-y-6 flex flex-col h-[600px]">
+            {error && (
+                <div className="bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800 p-4 rounded-2xl flex items-center space-x-3 text-rose-600 dark:text-rose-400 text-xs font-bold animate-in slide-in-from-top-2 duration-300">
+                    <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                    <p>{error}</p>
+                </div>
+            )}
+
             <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                     <div className="bg-emerald-600 p-2.5 rounded-xl">
