@@ -11,6 +11,13 @@ export interface Bulletin {
     targetLevel?: string;
     createdAt: string;
     isRead?: boolean;
+    priority?: 'low' | 'medium' | 'high';
+    expiresAt?: string;
+    readStats?: {
+        readCount: number;
+        totalCount: number;
+        percentage: number;
+    };
     teacher?: {
         firstName: string;
         lastName: string;

@@ -11,8 +11,14 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
     const [bulletins, setBulletins] = useState<Bulletin[]>([]);
     const [loading, setLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
-    const [newBulletin, setNewBulletin] = useState({ title: '', content: '', category: 'Announcement' });
+    const [newBulletin, setNewBulletin] = useState({
+        title: '',
+        content: '',
+        category: 'Announcement',
+        priority: 'medium' as 'low' | 'medium' | 'high'
+    });
     const [actionLoading, setActionLoading] = useState(false);
+    const [expandedIds, setExpandedIds] = useState<string[]>([]);
     useEffect(() => {
         fetchBulletins();
     }, []);
@@ -49,7 +55,12 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
         setActionLoading(true);
         try {
             await bulletinsService.create(newBulletin);
-            setNewBulletin({ title: '', content: '', category: 'Announcement' });
+            setNewBulletin({
+                title: '',
+                content: '',
+                category: 'Announcement',
+                priority: 'medium'
+            });
             setIsCreating(false);
             fetchBulletins();
         } catch (err) {
@@ -69,9 +80,27 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
         }
     };
 
+    const toggleExpand = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setExpandedIds(prev => prev.includes(id)
+            ? prev.filter(i => i !== id)
+            : [...prev, id]
+        );
+    };
+
     const formatDate = (dateStr: string) => {
         const date = new Date(dateStr);
         return date.toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' });
+    };
+
+    const getRelativeTime = (dateStr: string) => {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+
+        if (diffInHours < 1) return 'Az önce';
+        if (diffInHours < 24) return `${diffInHours}s önce`;
+        return `${Math.floor(diffInHours / 24)}g önce`;
     };
 
     return (
@@ -99,20 +128,20 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 space-y-4">
                 {isCreating && (
                     <form onSubmit={handleCreate} className="bg-slate-50 dark:bg-slate-800/50 rounded-3xl p-5 border border-brand-100 dark:border-brand-900/20 animate-in zoom-in duration-300 space-y-3">
-                        <input
-                            type="text"
-                            placeholder="Duyuru Başlığı"
-                            value={newBulletin.title}
-                            onChange={e => setNewBulletin({ ...newBulletin, title: e.target.value })}
-                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-xs font-bold focus:ring-2 focus:ring-brand-500/10 outline-none"
-                        />
-                        <textarea
-                            placeholder="Duyuru İçeriği..."
-                            value={newBulletin.content}
-                            onChange={e => setNewBulletin({ ...newBulletin, content: e.target.value })}
-                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-xs font-medium h-24 resize-none focus:ring-2 focus:ring-brand-500/10 outline-none"
-                        />
-                        <div className="grid grid-cols-2 gap-2">
+                        <div className="grid grid-cols-2 gap-3">
+                            <input
+                                type="text"
+                                placeholder="Duyuru Başlığı"
+                                value={newBulletin.title}
+                                onChange={e => setNewBulletin({ ...newBulletin, title: e.target.value })}
+                                className="col-span-2 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-xs font-bold focus:ring-2 focus:ring-brand-500/10 outline-none"
+                            />
+                            <textarea
+                                placeholder="Duyuru İçeriği..."
+                                value={newBulletin.content}
+                                onChange={e => setNewBulletin({ ...newBulletin, content: e.target.value })}
+                                className="col-span-2 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-4 py-2 text-xs font-medium h-24 resize-none focus:ring-2 focus:ring-brand-500/10 outline-none"
+                            />
                             <select
                                 value={newBulletin.category}
                                 onChange={e => setNewBulletin({ ...newBulletin, category: e.target.value })}
@@ -122,10 +151,19 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
                                 <option value="Important">Önemli</option>
                                 <option value="Exam">Sınav</option>
                             </select>
+                            <select
+                                value={newBulletin.priority}
+                                onChange={e => setNewBulletin({ ...newBulletin, priority: e.target.value as any })}
+                                className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest outline-none"
+                            >
+                                <option value="low">Düşük Öncelik</option>
+                                <option value="medium">Orta Öncelik</option>
+                                <option value="high">Yüksek Öncelik 🔥</option>
+                            </select>
                             <button
                                 type="submit"
                                 disabled={actionLoading}
-                                className="bg-brand-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-brand-700 transition-all flex items-center justify-center"
+                                className="col-span-2 bg-brand-600 text-white rounded-xl py-3 text-[10px] font-black uppercase tracking-widest hover:bg-brand-700 transition-all flex items-center justify-center mt-2"
                             >
                                 {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'YAYINLA'}
                             </button>
@@ -140,79 +178,86 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
                 ) : bulletins.length > 0 ? (
                     bulletins.map((bulletin) => {
                         const isUnread = !bulletin.isRead;
+                        const isHigh = bulletin.priority === 'high';
+                        const isLow = bulletin.priority === 'low';
+                        const isExpanded = expandedIds.includes(bulletin.id);
+
                         return (
                             <div
                                 key={bulletin.id}
                                 onClick={() => handleMarkAsRead(bulletin.id, bulletin.isRead)}
-                                className={`group border-2 rounded-[2.5rem] p-7 md:p-8 transition-all hover:shadow-2xl relative overflow-hidden active:scale-[0.99] duration-500 cursor-pointer ${isUnread
-                                    ? 'bg-emerald-50/40 dark:bg-emerald-900/10 border-emerald-200/50 dark:border-emerald-800/50 shadow-lg shadow-emerald-500/5'
-                                    : 'bg-white dark:bg-slate-900 border-slate-50 dark:border-slate-800/50 hover:border-brand-500/30'
+                                className={`group rounded-3xl transition-all duration-300 border-2 relative overflow-hidden active:scale-[0.99] cursor-pointer ${isUnread
+                                    ? isHigh
+                                        ? 'bg-orange-50/20 border-orange-200 dark:bg-orange-950/5 dark:border-orange-500/20 shadow-sm'
+                                        : 'bg-emerald-50/20 border-emerald-200 dark:bg-emerald-950/5 dark:border-emerald-500/20 shadow-sm'
+                                    : 'bg-white dark:bg-slate-900 border-slate-50 dark:border-slate-800/50 hover:border-brand-500/20'
                                     }`}
                             >
-                                <div className="flex items-start justify-between mb-5">
-                                    <div className="flex items-center space-x-4">
-                                        <div className={`w-14 h-14 rounded-2xl flex flex-col items-center justify-center shrink-0 border transition-colors relative ${isUnread
-                                            ? 'bg-emerald-100/50 border-emerald-200 dark:bg-emerald-900/30 dark:border-emerald-800/50'
-                                            : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-800 group-hover:bg-brand-50'
-                                            }`}>
-                                            {isUnread && (
-                                                <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                                    <span className="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                                                </span>
-                                            )}
-                                            <span className={`text-xs font-black leading-none uppercase ${isUnread ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
-                                                {formatDate(bulletin.createdAt).split(' ')[1]}
+                                <div className="p-4">
+                                    <div className="flex items-center justify-between gap-2 mb-2">
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${isHigh ? 'bg-orange-100 text-orange-600' : 'bg-slate-50 text-slate-400 dark:bg-slate-800'}`}>
+                                                {bulletin.category}
                                             </span>
-                                            <span className={`text-sm font-black mt-1 ${isUnread ? 'text-emerald-600' : 'text-brand-600'}`}>
-                                                {formatDate(bulletin.createdAt).split(' ')[0]}
-                                            </span>
+                                            {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
                                         </div>
-                                        <div>
-                                            <div className="flex items-center space-x-3">
-                                                <h4 className="text-lg font-black text-slate-900 dark:text-white leading-tight">{bulletin.title}</h4>
-                                                {isUnread && (
-                                                    <span className="bg-emerald-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">Yeni</span>
-                                                )}
+                                        <div className="flex items-center gap-3">
+                                            <div className="flex items-center gap-1 opacity-40">
+                                                <Clock className="w-2.5 h-2.5" />
+                                                <span className="text-[9px] font-bold">{getRelativeTime(bulletin.createdAt)}</span>
                                             </div>
-                                            <div className="flex items-center space-x-3 mt-2">
-                                                <span className={`text-[8px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest ${bulletin.category === 'Important'
-                                                    ? 'bg-rose-100 text-rose-600 dark:bg-rose-900/30'
-                                                    : 'bg-indigo-100 text-indigo-600 dark:bg-indigo-900/30'
-                                                    }`}>
-                                                    {bulletin.category}
-                                                </span>
-                                                {bulletin.teacher && (
-                                                    <div className="flex items-center space-x-1.5">
-                                                        <div className="w-4 h-4 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-[8px] font-black">
-                                                            {bulletin.teacher.firstName[0]}
-                                                        </div>
-                                                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                                                            Teacher {bulletin.teacher.firstName}
-                                                        </span>
-                                                    </div>
-                                                )}
-                                            </div>
+                                            {user.role === 'teacher' && (
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleDelete(bulletin.id); }}
+                                                    className="p-1 text-slate-300 hover:text-rose-500 transition-colors"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
-                                    {user.role === 'teacher' && (
+
+                                    <div className="space-y-1">
+                                        <h4 className="text-sm font-black text-slate-900 dark:text-white leading-tight">{bulletin.title}</h4>
+                                        <div className={`text-[11px] text-slate-500 dark:text-slate-400 font-medium leading-relaxed transition-all duration-300 overflow-hidden ${isExpanded ? 'max-h-96 opacity-100' : 'max-h-5 opacity-70 truncate'}`}>
+                                            {bulletin.content}
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-3 pt-3 border-t border-slate-50 dark:border-slate-800 flex items-center justify-between">
                                         <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleDelete(bulletin.id);
-                                            }}
-                                            className="opacity-0 group-hover:opacity-100 p-2.5 text-slate-300 hover:text-rose-500 transition-all absolute top-6 right-6 bg-slate-50 dark:bg-slate-800 rounded-xl"
+                                            onClick={(e) => toggleExpand(bulletin.id, e)}
+                                            className="flex items-center gap-1 text-[9px] font-black text-brand-600 hover:text-brand-700 uppercase tracking-widest transition-colors"
                                         >
-                                            <Trash2 className="w-5 h-5" />
+                                            {isExpanded ? 'Küçült' : 'Detaylar'}
+                                            <ChevronRight className={`w-2.5 h-2.5 transition-transform duration-300 ${isExpanded ? '-rotate-90' : 'rotate-90'}`} />
                                         </button>
+
+                                        <div className="flex items-center gap-1.5 grayscale opacity-60">
+                                            <div className="w-4 h-4 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-[7px] font-black uppercase border border-slate-200 dark:border-slate-700">
+                                                {bulletin.teacher?.firstName?.[0] || 'T'}
+                                            </div>
+                                            <span className="text-[9px] font-bold text-slate-400 capitalize">
+                                                {bulletin.teacher?.firstName} {bulletin.teacher?.lastName}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {user.role === 'teacher' && bulletin.readStats && isExpanded && (
+                                        <div className="mt-3 p-2.5 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl animate-in slide-in-from-top-1">
+                                            <div className="flex items-center justify-between mb-1.5">
+                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Okunma</span>
+                                                <span className="text-[8px] font-black text-brand-600">%{Math.round(bulletin.readStats.percentage)}</span>
+                                            </div>
+                                            <div className="h-0.5 w-full bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden">
+                                                <div className="h-full bg-brand-500" style={{ width: `${bulletin.readStats.percentage}%` }} />
+                                            </div>
+                                        </div>
                                     )}
                                 </div>
-                                <div className="max-h-32 overflow-y-auto custom-scrollbar-thin">
-                                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400 leading-relaxed italic border-l-4 border-brand-100 dark:border-brand-900/30 pl-6 py-2">
-                                        "{bulletin.content}"
-                                    </p>
-                                </div>
-                                <div className={`absolute top-0 right-0 w-32 h-32 rounded-full -mr-16 -mt-16 group-hover:opacity-20 transition-colors duration-700 ${isUnread ? 'bg-emerald-500/10' : 'bg-brand-500/5'}`} />
+                                {isHigh && (
+                                    <div className="absolute top-0 right-0 w-12 h-12 bg-orange-500/5 -mr-6 -mt-6 rotate-45 pointer-events-none" />
+                                )}
                             </div>
                         );
                     })
