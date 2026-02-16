@@ -1,3 +1,5 @@
+import { authService } from './auth';
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
 export interface Bulletin {
@@ -16,11 +18,12 @@ export interface Bulletin {
 
 export const bulletinsService = {
     async create(data: { title: string; content: string; category?: string; targetLevel?: string }): Promise<Bulletin> {
+        const token = authService.getToken();
         const response = await fetch(`${API_URL}/bulletins`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${this.getToken()}`
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(data)
         });
@@ -29,55 +32,49 @@ export const bulletinsService = {
     },
 
     async getForTeacher(): Promise<Bulletin[]> {
+        const token = authService.getToken();
+        if (!token) return [];
+
         const response = await fetch(`${API_URL}/bulletins/teacher`, {
             headers: {
-                'Authorization': `Bearer ${this.getToken()}`
+                'Authorization': `Bearer ${token}`
             }
         });
         if (!response.ok) {
             const errorText = await response.text();
             console.error('getForTeacher error:', response.status, errorText);
+            if (response.status === 401) return [];
             throw new Error(`Duyurular yüklenemedi: ${response.status}`);
         }
         return response.json();
     },
 
     async getForStudent(): Promise<Bulletin[]> {
+        const token = authService.getToken();
+        if (!token) return [];
+
         const response = await fetch(`${API_URL}/bulletins/student`, {
             headers: {
-                'Authorization': `Bearer ${this.getToken()}`
+                'Authorization': `Bearer ${token}`
             }
         });
         if (!response.ok) {
             const errorText = await response.text();
             console.error('getForStudent error:', response.status, errorText);
+            if (response.status === 401) return [];
             throw new Error(`Duyurular yüklenemedi: ${response.status}`);
         }
         return response.json();
     },
 
     async delete(id: string): Promise<void> {
+        const token = authService.getToken();
         const response = await fetch(`${API_URL}/bulletins/${id}`, {
             method: 'DELETE',
             headers: {
-                'Authorization': `Bearer ${this.getToken()}`
+                'Authorization': `Bearer ${token}`
             }
         });
         if (!response.ok) throw new Error('Duyuru silinemedi');
-    },
-
-    getToken() {
-        if (typeof window === 'undefined') return '';
-        const userStr = localStorage.getItem('mewo_user');
-        if (!userStr || userStr === 'undefined' || userStr === 'null') return '';
-
-        try {
-            const user = JSON.parse(userStr);
-            if (!user) return '';
-            return user.access_token || user.token || '';
-        } catch (e) {
-            console.error('[bulletinsService] Error parsing user from localStorage:', e);
-            return '';
-        }
     }
 };
