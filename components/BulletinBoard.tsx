@@ -13,11 +13,7 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
     const [isCreating, setIsCreating] = useState(false);
     const [newBulletin, setNewBulletin] = useState({ title: '', content: '', category: 'Announcement' });
     const [actionLoading, setActionLoading] = useState(false);
-    const [readIds, setReadIds] = useState<string[]>([]);
-
     useEffect(() => {
-        const stored = localStorage.getItem(`mewo_read_bulletins_${user.id}`);
-        if (stored) setReadIds(JSON.parse(stored));
         fetchBulletins();
     }, []);
 
@@ -35,11 +31,15 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
         }
     };
 
-    const handleMarkAsRead = (id: string) => {
-        if (readIds.includes(id)) return;
-        const newIds = [...readIds, id];
-        setReadIds(newIds);
-        localStorage.setItem(`mewo_read_bulletins_${user.id}`, JSON.stringify(newIds));
+    const handleMarkAsRead = async (id: string, currentlyRead?: boolean) => {
+        if (user.role !== 'student' || currentlyRead) return;
+        try {
+            // Optimistic update
+            setBulletins(prev => prev.map(msg => msg.id === id ? { ...msg, isRead: true } : msg));
+            await bulletinsService.markAsRead(id);
+        } catch (err) {
+            console.error('Duyuru okundu işaretlenemedi:', err);
+        }
     };
 
     const handleCreate = async (e: React.FormEvent) => {
@@ -139,11 +139,11 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
                     </div>
                 ) : bulletins.length > 0 ? (
                     bulletins.map((bulletin) => {
-                        const isUnread = !readIds.includes(bulletin.id);
+                        const isUnread = !bulletin.isRead;
                         return (
                             <div
                                 key={bulletin.id}
-                                onClick={() => handleMarkAsRead(bulletin.id)}
+                                onClick={() => handleMarkAsRead(bulletin.id, bulletin.isRead)}
                                 className={`group border-2 rounded-[2.5rem] p-7 md:p-8 transition-all hover:shadow-2xl relative overflow-hidden active:scale-[0.99] duration-500 cursor-pointer ${isUnread
                                     ? 'bg-emerald-50/40 dark:bg-emerald-900/10 border-emerald-200/50 dark:border-emerald-800/50 shadow-lg shadow-emerald-500/5'
                                     : 'bg-white dark:bg-slate-900 border-slate-50 dark:border-slate-800/50 hover:border-brand-500/30'

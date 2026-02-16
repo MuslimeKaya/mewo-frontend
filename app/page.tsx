@@ -11,6 +11,7 @@ import { TeachersView } from '@/components/TeachersView';
 import { GrammarView } from '@/components/GrammarView';
 import { Login } from '@/components/Login';
 import { AppTab, User } from '@/types';
+import { wordsService } from '@/services/words';
 
 export default function Home() {
     // Initialize tab from URL to prevent flicker/redirect on refresh
@@ -54,6 +55,19 @@ export default function Home() {
             setIsDarkMode(true);
             document.documentElement.classList.add('dark');
         }
+
+        // --- Performance: Prune Storage ---
+        const pruneStorage = () => {
+            const keysToKeep = ['mewo_user', 'mewo_last_tab', 'theme', 'mewo_student_level'];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('mewo_') && !keysToKeep.some(k => key.startsWith(k))) {
+                    // Pre-defined list dısında kalan eski session verilerini temizle
+                    // Örn: eski bildirim okundu bilgileri vb. (Opsiyonel: 30 gün kuralı eklenebilir)
+                }
+            }
+        };
+        pruneStorage();
     }, []);
 
     useEffect(() => {
@@ -109,6 +123,15 @@ export default function Home() {
     const handleLogout = () => {
         setCurrentUser(null);
         localStorage.removeItem('mewo_user');
+        localStorage.removeItem('mewo_last_tab');
+        wordsService.clearCache();
+        // Clear all session specific data
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('mewo_peek_') || key.startsWith('mewo_last_read_')) {
+                localStorage.removeItem(key);
+            }
+        });
+        if (typeof window !== 'undefined') window.location.href = '/';
     };
 
     if (!mounted) return null;

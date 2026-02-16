@@ -10,6 +10,7 @@ export interface Bulletin {
     category?: string;
     targetLevel?: string;
     createdAt: string;
+    isRead?: boolean;
     teacher?: {
         firstName: string;
         lastName: string;
@@ -76,5 +77,18 @@ export const bulletinsService = {
             }
         });
         if (!response.ok) throw new Error('Duyuru silinemedi');
+    },
+
+    async markAsRead(id: string): Promise<void> {
+        const token = authService.getToken();
+        if (!token) return;
+
+        const response = await fetch(`${API_URL}/bulletins/${id}/read`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        if (!response.ok) throw new Error('Duyuru okundu olarak işaretlenemedi');
     }
 };
