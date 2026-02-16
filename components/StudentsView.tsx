@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, Mail, Trophy, Clock, ArrowUpRight, TrendingUp, Zap, GraduationCap, Filter, ShieldCheck, X, CheckSquare, Target } from 'lucide-react';
-import { authService } from '../services/auth';
+import { Users, Search, Mail, Trophy, Clock, ArrowUpRight, TrendingUp, Zap, GraduationCap, Filter, ShieldCheck, X, CheckSquare, Target, BookOpen } from 'lucide-react';
+import { authService, API_URL } from '../services/auth';
 import { Word } from '../services/words';
 
 export const StudentsView: React.FC = () => {
     const [students, setStudents] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'top'>('all');
     const [activeTab, setActiveTab] = useState<'roster' | 'requests'>('roster');
@@ -16,7 +17,7 @@ export const StudentsView: React.FC = () => {
     const [selectedStudent, setSelectedStudent] = useState<any | null>(null);
     const [studentProgress, setStudentProgress] = useState<any[]>([]);
     const [fetchingProgress, setFetchingProgress] = useState(false);
-    const itemsPerPage = 20;
+    const itemsPerPage = 10;
 
     useEffect(() => {
         if (activeTab === 'roster') {
@@ -29,11 +30,14 @@ export const StudentsView: React.FC = () => {
     const fetchStudents = async (page: number = 1) => {
         try {
             setLoading(true);
+            setError(null);
             const data = await authService.getMyStudents(page, itemsPerPage);
+            console.log('Fetched students:', data);
             setStudents(data.students || []);
             setTotalCount(data.count || 0);
-        } catch (err) {
+        } catch (err: any) {
             console.error('Students could not be loaded:', err);
+            setError(err.message || 'Öğrenciler yüklenirken bir sorun oluştu.');
         } finally {
             setLoading(false);
         }
@@ -51,9 +55,10 @@ export const StudentsView: React.FC = () => {
         }
     };
 
-    const filteredStudents = students.filter(s => {
-        const matchesSearch = `${s.firstName} ${s.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            s.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const filteredStudents = (students || []).filter(s => {
+        const fullName = `${s.firstName || ''} ${s.lastName || ''}`.toLowerCase();
+        const email = (s.email || '').toLowerCase();
+        const matchesSearch = fullName.includes(searchTerm.toLowerCase()) || email.includes(searchTerm.toLowerCase());
 
         if (activeFilter === 'top') return matchesSearch && (s.xp > 1000);
         if (activeFilter === 'active') return matchesSearch && s.lastActiveAt;
@@ -61,7 +66,7 @@ export const StudentsView: React.FC = () => {
     });
 
     const stats = [
-        { label: 'TOPLAM ÖĞRENCİ', value: students.length, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+        { label: 'TOPLAM ÖĞRENCİ', value: totalCount || students.length, icon: Users, color: 'text-indigo-600', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
         { label: 'BEKLEYEN ONAY', value: pendingRequests.length, icon: ShieldCheck, color: 'text-amber-600', bg: 'bg-amber-50 dark:bg-amber-900/20' },
         { label: 'AKTİF ÖĞRENCİ', value: students.filter(s => s.lastActiveAt).length, icon: Zap, color: 'text-emerald-600', bg: 'bg-emerald-50 dark:bg-emerald-900/20' }
     ];
@@ -86,268 +91,329 @@ export const StudentsView: React.FC = () => {
     };
 
     return (
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* Admission Control Header */}
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6 border-b border-slate-100 dark:border-slate-800 pb-8">
-                <div className="space-y-1">
-                    <div className="flex items-center space-x-2 text-brand-600 mb-1">
-                        <ShieldCheck className="w-4 h-4" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Erişim ve Onay Paneli</span>
-                    </div>
-                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase leading-none">
-                        DERS <span className="text-brand-600">YÖNETİMİ</span>
-                    </h2>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">
-                        {activeTab === 'roster' ? `KAYITLI ${students.length} ÖĞRENCİ` : `${pendingRequests.length} YENİ BAŞVURU İNCELENİYOR`}
-                    </p>
-                </div>
-
-                <div className="flex items-center gap-3">
-                    <div className="bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl flex items-center border border-slate-200 dark:border-slate-700">
+        <div className="max-w-[1600px] mx-auto space-y-6 pb-40 animate-in fade-in duration-500 font-sans">
+            {/* Minimal Header */}
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="flex items-center space-x-4">
+                    <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Ders Yönetimi</h2>
+                    <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
                         <button
                             onClick={() => setActiveTab('roster')}
-                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black transition-all ${activeTab === 'roster' ? 'bg-white dark:bg-slate-900 shadow-lg text-brand-600' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`px-4 py-1.5 text-[11px] font-bold rounded-md transition-all ${activeTab === 'roster' ? 'bg-white dark:bg-slate-900 text-brand-600 shadow-sm' : 'text-slate-400'}`}
                         >
-                            ÖĞRENCİ LİSTESİ
+                            Öğrenciler
                         </button>
                         <button
                             onClick={() => setActiveTab('requests')}
-                            className={`px-6 py-2.5 rounded-xl text-[10px] font-black transition-all relative ${activeTab === 'requests' ? 'bg-white dark:bg-slate-900 shadow-lg text-brand-600' : 'text-slate-400 hover:text-slate-600'}`}
+                            className={`px-4 py-1.5 text-[11px] font-bold rounded-md transition-all relative ${activeTab === 'requests' ? 'bg-white dark:bg-slate-900 text-brand-600 shadow-sm' : 'text-slate-400'}`}
                         >
-                            KATILIM TALEPLERİ
-                            {pendingRequests.length > 0 && (
-                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-brand-600 text-white text-[8px] flex items-center justify-center rounded-full animate-bounce">
-                                    {pendingRequests.length}
-                                </span>
-                            )}
+                            Talepler
+                            {pendingRequests.length > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full" />}
                         </button>
                     </div>
                 </div>
+
+                <div className="flex items-center space-x-3 text-[11px] font-bold text-slate-400 uppercase tracking-wider">
+                    <span className="flex items-center gap-1.5">
+                        <Users className="w-3.5 h-3.5" /> {totalCount} Kayıt
+                    </span>
+                </div>
             </div>
 
-            {/* Scale Statistics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {stats.map((stat, idx) => (
-                    <div key={idx} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-2xl p-4 flex items-center justify-between shadow-sm hover:shadow-md transition-all group">
-                        <div className="flex items-center space-x-3">
-                            <div className={`${stat.bg} ${stat.color} w-9 h-9 rounded-xl flex items-center justify-center shrink-0`}>
-                                <stat.icon className="w-4 h-4" />
-                            </div>
-                            <div>
-                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-wider">{stat.label}</p>
-                                <h4 className="text-xl font-black text-slate-900 dark:text-white leading-none mt-0.5">{stat.value}</h4>
-                            </div>
-                        </div>
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                            <ArrowUpRight className="w-3 h-3 text-slate-300" />
-                        </div>
-                    </div>
-                ))}
-            </div>
+            {/* Quiet Search & Filters */}
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                <div className="relative w-full sm:w-64 group">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-brand-500 transition-colors" />
+                    <input
+                        type="text"
+                        placeholder="İsim veya e-posta ile ara..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full bg-slate-50 dark:bg-slate-800/50 border-none rounded-xl py-2 pl-9 pr-4 text-xs font-medium focus:ring-2 focus:ring-brand-500/20 transition-all placeholder:text-slate-400"
+                    />
+                </div>
 
-            {activeTab === 'roster' && (
-                <div className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 px-6 py-3 rounded-2xl border border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center space-x-4 overflow-x-auto no-scrollbar scroll-smooth">
-                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] whitespace-nowrap">Filtrele:</span>
-                        {(['all', 'active', 'top'] as const).map((filter) => (
+                {activeTab === 'roster' && (
+                    <div className="flex items-center space-x-1 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-lg">
+                        {(['all', 'active', 'top'] as const).map((f) => (
                             <button
-                                key={filter}
-                                onClick={() => setActiveFilter(filter)}
-                                className={`px-4 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${activeFilter === filter
-                                    ? 'bg-white dark:bg-slate-900 text-brand-600 shadow-sm border border-slate-100 dark:border-slate-700'
-                                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
-                                    }`}
+                                key={f}
+                                onClick={() => setActiveFilter(f)}
+                                className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${activeFilter === f ? 'bg-white dark:bg-slate-900 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
                             >
-                                {filter === 'all' ? 'TÜM KAYITLAR' : filter === 'active' ? 'YAKINDA AKTİF' : 'ELİT PUAN (+1000)'}
+                                {f === 'all' ? 'Tümü' : f === 'active' ? 'Aktif' : 'Elit'}
                             </button>
                         ))}
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
-            {activeTab === 'roster' ? (
+            {error ? (
+                <div className="py-12 flex justify-center">
+                    <div className="bg-rose-50 dark:bg-rose-900/10 text-rose-600 px-6 py-4 rounded-xl flex flex-col items-center gap-2 max-w-sm text-center">
+                        <p className="text-xs font-bold">{error}</p>
+                        <button
+                            onClick={() => fetchStudents(currentPage)}
+                            className="text-[10px] uppercase tracking-widest font-black underline underline-offset-4 hover:opacity-70 transition-opacity"
+                        >
+                            Tekrar Dene
+                        </button>
+                    </div>
+                </div>
+            ) : activeTab === 'roster' ? (
                 loading ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((i) => (
-                            <div key={i} className="h-32 bg-white dark:bg-slate-900 rounded-2xl animate-pulse border border-slate-100 dark:border-slate-800" />
+                    <div className="space-y-2">
+                        {[1, 2, 3, 4, 5].map(i => (
+                            <div key={i} className="h-14 bg-white dark:bg-slate-900 rounded-xl animate-pulse border border-slate-50 dark:border-slate-800" />
                         ))}
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                        {filteredStudents.map((student) => (
-                            <div key={student.id}
-                                onClick={async () => {
-                                    setSelectedStudent(student);
-                                    setFetchingProgress(true);
-                                    try {
-                                        const progress = await authService.getStudentProgressForTeacher(student.id);
-                                        setStudentProgress(progress);
-                                    } catch (e) {
-                                        console.error('Progress error:', e);
-                                    } finally {
-                                        setFetchingProgress(false);
-                                    }
-                                }}
-                                className="group bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-2.5 px-3 shadow-sm hover:shadow-md hover:border-brand-500/30 transition-all duration-300 cursor-pointer flex items-center gap-3">
-                                <div className="w-8 h-8 bg-slate-50 dark:bg-slate-800 rounded-lg flex items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700/50 group-hover:bg-brand-600 group-hover:text-white transition-all">
-                                    <span className="text-[10px] font-black uppercase text-slate-400 group-hover:text-white">{student.firstName?.[0]}{student.lastName?.[0]}</span>
-                                </div>
-                                <div className="min-w-0 flex-1">
-                                    <h3 className="text-[11px] font-black text-slate-900 dark:text-white leading-tight truncate">
-                                        {student.firstName} {student.lastName}
-                                    </h3>
-                                    <div className="flex items-center space-x-1.5 mt-0.5">
-                                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">L{student.level || 1} • {student.xp || 0} XP</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                )
-            ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {pendingRequests.length > 0 ? (
-                        <div className="space-y-2 col-span-full">
-                            {pendingRequests.map((request) => (
-                                <div key={request.id} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-3 px-5 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 animate-in slide-in-from-right-4 duration-300">
-                                    <div className="flex items-center space-x-3 shrink-0">
-                                        <div className="w-9 h-9 bg-amber-50 dark:bg-amber-900/20 text-amber-600 rounded-lg flex items-center justify-center">
-                                            <Users className="w-4 h-4" />
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
+                        <div className="divide-y divide-slate-50 dark:divide-slate-800">
+                            {filteredStudents.map((student) => (
+                                <div
+                                    key={student.id}
+                                    onClick={async () => {
+                                        setSelectedStudent(student);
+                                        setFetchingProgress(true);
+                                        try {
+                                            const progress = await authService.getStudentProgressForTeacher(student.id);
+                                            setStudentProgress(progress);
+                                        } catch (e) {
+                                            console.error('Progress error:', e);
+                                        } finally {
+                                            setFetchingProgress(false);
+                                        }
+                                    }}
+                                    className="flex items-center justify-between p-3 px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
+                                >
+                                    <div className="flex items-center space-x-4 min-w-0">
+                                        <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shrink-0 relative">
+                                            {student.avatar ? (
+                                                <img
+                                                    src={student.avatar.startsWith('http') ? student.avatar : `${API_URL.replace('/api', '')}${student.avatar}`}
+                                                    className="w-full h-full object-cover"
+                                                    alt=""
+                                                />
+                                            ) : (
+                                                <span className="text-[11px] font-black text-slate-400">{student.firstName?.[0]}{student.lastName?.[0]}</span>
+                                            )}
+                                            {student.lastActiveAt && (
+                                                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
+                                            )}
                                         </div>
                                         <div className="min-w-0">
-                                            <h3 className="text-xs font-black text-slate-900 dark:text-white leading-none uppercase truncate">{request.firstName} {request.lastName}</h3>
-                                            <p className="text-[9px] font-bold text-slate-400 mt-0.5 truncate">{request.email}</p>
+                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-brand-600 transition-colors">
+                                                {student.firstName} {student.lastName}
+                                            </h3>
+                                            <p className="text-[10px] text-slate-400 font-medium truncate">{student.email}</p>
                                         </div>
                                     </div>
 
-                                    <div className="flex-1 bg-slate-50 dark:bg-slate-800/50 rounded-xl px-4 py-2 text-[10px] font-medium text-slate-500 italic truncate max-w-md border border-slate-100 dark:border-slate-800">
-                                        "{request.joinMessage || "Sisteminize dahil olmak istiyorum."}"
-                                    </div>
-
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <button
-                                            onClick={() => handleApprove(request.enrollmentId)}
-                                            className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-[9px] font-black uppercase tracking-widest rounded-lg transition-all active:scale-95 shadow-lg shadow-emerald-500/10"
-                                        >
-                                            ONAYLA
-                                        </button>
-                                        <button
-                                            onClick={() => handleReject(request.enrollmentId)}
-                                            className="px-5 py-2 bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-red-600 text-[9px] font-black uppercase tracking-widest rounded-lg transition-all active:scale-95"
-                                        >
-                                            REDDET
-                                        </button>
+                                    <div className="flex items-center space-x-6 shrink-0">
+                                        <div className="text-right hidden sm:block">
+                                            <p className="text-[10px] font-bold text-slate-900 dark:text-white leading-none">{student.xp || 0} XP</p>
+                                            <div className="flex items-center justify-end gap-1 mt-0.5">
+                                                <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
+                                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Level {student.level || 1}</p>
+                                            </div>
+                                        </div>
+                                        <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-brand-500 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                                     </div>
                                 </div>
                             ))}
+
+                            {filteredStudents.length === 0 && (
+                                <div className="py-16 text-center opacity-60">
+                                    <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
+                                        <Users className="w-6 h-6" />
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Öğrenci bulunamadı</p>
+                                </div>
+                            )}
                         </div>
-                    ) : (
-                        <div className="col-span-full py-32 flex flex-col items-center justify-center text-center opacity-30">
-                            <ShieldCheck className="w-16 h-16 text-slate-300 mb-4" />
-                            <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">BEKLEYEN BAŞVURU YOK</h3>
-                            <p className="text-sm font-bold text-slate-400 max-w-xs mt-2">Şu an için onayınızı bekleyen herhangi bir ders katılım talebi bulunmamaktadır.</p>
+                    </div>
+                )
+            ) : (
+                <div className="space-y-3">
+                    {pendingRequests.map((request) => (
+                        <div key={request.id} className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl p-4 flex items-center justify-between gap-4 shadow-sm hover:border-brand-200 transition-all">
+                            <div className="flex items-center space-x-4 min-w-0">
+                                <div className="w-10 h-10 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center shrink-0 border border-slate-100 dark:border-slate-700 overflow-hidden">
+                                    {request.avatar ? (
+                                        <img
+                                            src={request.avatar.startsWith('http') ? request.avatar : `${API_URL.replace('/api', '')}${request.avatar}`}
+                                            className="w-full h-full object-cover"
+                                            alt=""
+                                        />
+                                    ) : (
+                                        <Users className="w-4 h-4 text-slate-300" />
+                                    )}
+                                </div>
+                                <div className="min-w-0">
+                                    <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">{request.firstName} {request.lastName}</h3>
+                                    <p className="text-[10px] text-slate-400 font-medium truncate italic">"{request.joinMessage || "Sisteme katılmak istiyorum."}"</p>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => handleApprove(request.enrollmentId)} className="p-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-900/10 dark:hover:bg-emerald-900/30 rounded-lg transition-colors" title="Onayla">
+                                    <CheckSquare className="w-4 h-4" />
+                                </button>
+                                <button onClick={() => handleReject(request.enrollmentId)} className="p-2 text-rose-500 bg-rose-50 hover:bg-rose-100 dark:bg-rose-900/10 dark:hover:bg-rose-900/30 rounded-lg transition-colors" title="Reddet">
+                                    <X className="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    ))}
+                    {pendingRequests.length === 0 && (
+                        <div className="py-16 text-center opacity-60">
+                            <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
+                                <ShieldCheck className="w-6 h-6" />
+                            </div>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Bekleyen talep yok</p>
                         </div>
                     )}
                 </div>
             )}
 
-            {/* Pagination / Scalability Footer */}
-            {activeTab === 'roster' && (
-                <div className="flex items-center justify-between pt-6 border-t border-slate-100 dark:border-slate-800 text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                    <p>
-                        GÖSTERİLEN: {Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)} - {Math.min(currentPage * itemsPerPage, totalCount)} / TOPLAM {totalCount}
-                    </p>
-                    <div className="flex items-center gap-2">
-                        <button
-                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                            disabled={currentPage === 1 || loading}
-                            className={`px-5 py-2.5 rounded-xl text-[10px] font-black tracking-widest transition-all duration-300 flex items-center gap-2 ${currentPage === 1
-                                ? 'bg-slate-100 dark:bg-slate-800/50 text-slate-300 dark:text-slate-600 cursor-not-allowed opacity-50'
-                                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-brand-600 hover:text-white hover:shadow-lg hover:shadow-brand-500/20 active:scale-95'
-                                }`}
-                        >
-                            <span className="text-sm">←</span> ÖNCEKİ
-                        </button>
-
-                        <div className="flex items-center bg-white dark:bg-slate-900 border-2 border-slate-100 dark:border-slate-800 rounded-xl px-4 py-2.5">
-                            <span className="text-[10px] font-black text-slate-400 uppercase mr-2 tracking-tighter">SAYFA</span>
-                            <span className="text-xs font-black text-brand-600">{currentPage}</span>
+            {/* Pagination */}
+            {activeTab === 'roster' && !error && (
+                <div className="flex items-center justify-center p-6 mt-4 border-t border-slate-100 dark:border-slate-800 bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm rounded-3xl">
+                    <div className="max-w-[1600px] w-full flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden sm:block">
+                            Sayfa {currentPage} / {Math.ceil(totalCount / itemsPerPage) || 1}
+                        </span>
+                        <div className="flex items-center space-x-4 mx-auto sm:mx-0">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1 || loading}
+                                className="text-[10px] font-black uppercase tracking-widest disabled:opacity-20 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                            >
+                                Geri
+                            </button>
+                            <span className="text-[10px] font-black text-brand-600 tabular-nums bg-brand-50 dark:bg-brand-900/20 px-3 py-1 rounded-lg">
+                                {currentPage}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(p => p + 1)}
+                                disabled={currentPage * itemsPerPage >= totalCount || loading}
+                                className="text-[10px] font-black uppercase tracking-widest disabled:opacity-20 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                            >
+                                İleri
+                            </button>
                         </div>
-
-                        <button
-                            onClick={() => setCurrentPage(p => p + 1)}
-                            disabled={currentPage * itemsPerPage >= totalCount || loading}
-                            className={`px-5 py-2.5 rounded-xl text-[10px] font-black tracking-widest transition-all duration-300 flex items-center gap-2 ${currentPage * itemsPerPage >= totalCount
-                                ? 'bg-slate-100 dark:bg-slate-800/50 text-slate-300 dark:text-slate-600 cursor-not-allowed opacity-50'
-                                : 'bg-brand-600 text-white hover:bg-brand-700 hover:shadow-lg hover:shadow-brand-500/30 active:scale-95'
-                                }`}
-                        >
-                            SONRAKİ <span className="text-sm">→</span>
-                        </button>
                     </div>
                 </div>
             )}
-            {/* Student Progress Modal */}
+
+            {/* Premium Student Progress Modal */}
             {selectedStudent && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-300">
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden border-4 border-white dark:border-slate-800">
-                        <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50 dark:bg-slate-900/50">
-                            <div className="flex items-center space-x-4">
-                                <div className="w-12 h-12 bg-brand-600 rounded-2xl flex items-center justify-center text-white text-lg font-black">
-                                    {selectedStudent.firstName[0]}{selectedStudent.lastName[0]}
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                    <div className="absolute inset-0 bg-slate-900/80 backdrop-blur-xl animate-in fade-in duration-700" onClick={() => setSelectedStudent(null)} />
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-[4rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.5)] overflow-hidden border-8 border-white dark:border-slate-800 relative z-10 animate-in zoom-in-95 duration-500">
+                        {/* Modal Header */}
+                        <div className="p-10 border-b-2 border-slate-50 dark:border-slate-800/50 flex flex-col md:flex-row md:items-center justify-between gap-8 bg-slate-50/50 dark:bg-slate-900/50">
+                            <div className="flex items-center space-x-8">
+                                <div className="w-24 h-24 bg-brand-600 rounded-[2.5rem] overflow-hidden flex items-center justify-center text-white text-3xl font-black shadow-2xl shadow-brand-500/40 shrink-0 ring-4 ring-white dark:ring-slate-800">
+                                    {selectedStudent.avatar ? (
+                                        <img
+                                            src={selectedStudent.avatar.startsWith('http') ? selectedStudent.avatar : `${API_URL.replace('/api', '')}${selectedStudent.avatar}`}
+                                            className="w-full h-full object-cover"
+                                            alt=""
+                                        />
+                                    ) : (
+                                        <span className="uppercase">{selectedStudent.firstName[0]}{selectedStudent.lastName?.[0]}</span>
+                                    )}
                                 </div>
-                                <div>
-                                    <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                                        {selectedStudent.firstName} {selectedStudent.lastName}
-                                    </h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Yol Haritası ve Seviye İlerlemesi</p>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-3">
+                                        <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">
+                                            {selectedStudent.firstName} {selectedStudent.lastName}
+                                        </h3>
+                                        <span className={`w-3 h-3 rounded-full ${selectedStudent.lastActiveAt ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                                    </div>
+                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-[0.3em]">ACADEMIC PERFORMANCE TRACKING</p>
+                                    <div className="flex gap-4 pt-2">
+                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                                            <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                                            <span className="text-[11px] font-black text-slate-700 dark:text-slate-300">{selectedStudent.xp || 0} XP</span>
+                                        </div>
+                                        <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                                            <GraduationCap className="w-3.5 h-3.5 text-brand-600" />
+                                            <span className="text-[11px] font-black text-slate-700 dark:text-slate-300">Lv. {selectedStudent.level || 1}</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <button onClick={() => setSelectedStudent(null)} className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-xl transition-colors">
-                                <X className="w-6 h-6 text-slate-400" />
+                            <button
+                                onClick={() => setSelectedStudent(null)}
+                                className="absolute top-10 right-10 p-4 bg-white dark:bg-slate-800 hover:bg-rose-500 hover:text-white dark:hover:bg-rose-600 rounded-[2rem] transition-all duration-500 shadow-xl shadow-slate-200/50 dark:shadow-none active:scale-95 group"
+                            >
+                                <X className="w-6 h-6 text-slate-400 group-hover:text-white transition-colors" />
                             </button>
                         </div>
 
-                        <div className="p-8 space-y-6">
+                        {/* Modal Content */}
+                        <div className="p-12 space-y-10">
                             {fetchingProgress ? (
-                                <div className="py-20 flex flex-col items-center justify-center space-y-4">
-                                    <div className="w-10 h-10 border-4 border-brand-200 border-t-brand-600 rounded-full animate-spin"></div>
-                                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Veriler yükleniyor...</p>
+                                <div className="py-24 flex flex-col items-center justify-center space-y-6">
+                                    <div className="relative">
+                                        <div className="w-16 h-16 border-8 border-slate-100 dark:border-slate-800 rounded-full"></div>
+                                        <div className="w-16 h-16 border-8 border-brand-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+                                    </div>
+                                    <p className="text-xs font-black text-slate-300 uppercase tracking-[0.4em]">Decrypting Data...</p>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {studentProgress.map((p, idx) => (
-                                        <div key={idx} className="bg-slate-50 dark:bg-slate-800/50 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 group hover:border-brand-500/30 transition-all">
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div className="flex items-center space-x-3">
-                                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-black ${p.percentage === 100 ? 'bg-emerald-500 text-white' : 'bg-brand-100 dark:bg-brand-900/30 text-brand-600'}`}>
-                                                        {p.level}
-                                                    </div>
-                                                    <div>
-                                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kelime Bilgisi</p>
-                                                        <h4 className="text-sm font-black text-slate-900 dark:text-white">{p.learned} / {p.total} Kelime</h4>
-                                                    </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                                    {studentProgress.length > 0 ? studentProgress.map((p, idx) => (
+                                        <div key={idx} className="bg-slate-50 dark:bg-slate-800/30 p-8 rounded-[3rem] border-2 border-slate-50 dark:border-slate-800/50 group hover:border-brand-500/30 transition-all duration-500 hover:shadow-2xl hover:bg-white dark:hover:bg-slate-800 translate-y-0 hover:-translate-y-2">
+                                            <div className="flex items-center justify-between mb-8">
+                                                <div className="w-14 h-14 rounded-2xl bg-white dark:bg-slate-900 flex items-center justify-center font-black text-xl text-brand-600 shadow-xl shadow-slate-200/40 dark:shadow-none ring-1 ring-slate-100 dark:ring-slate-800 group-hover:scale-110 transition-transform">
+                                                    {p.level}
                                                 </div>
-                                                <span className={`text-xs font-black ${p.percentage === 100 ? 'text-emerald-500' : 'text-brand-600'}`}>%{p.percentage}</span>
+                                                <div className="text-right">
+                                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Score</p>
+                                                    <span className={`text-xl font-black ${p.percentage === 100 ? 'text-emerald-500' : 'text-slate-900 dark:text-white'}`}>%{p.percentage}</span>
+                                                </div>
                                             </div>
-                                            <div className="w-full h-2 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                                                <div
-                                                    className={`h-full transition-all duration-1000 ${p.percentage === 100 ? 'bg-emerald-500' : 'bg-brand-500'}`}
-                                                    style={{ width: `${p.percentage}%` }}
-                                                ></div>
+                                            <div className="space-y-4">
+                                                <div className="flex justify-between items-end">
+                                                    <h4 className="text-sm font-black text-slate-900 dark:text-white uppercase">Vocabulary</h4>
+                                                    <span className="text-[10px] font-bold text-slate-400">{p.learned}/{p.total}</span>
+                                                </div>
+                                                <div className="w-full h-3 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 ring-1 ring-slate-100/50 dark:ring-slate-700/50">
+                                                    <div
+                                                        className={`h-full rounded-full transition-all duration-1000 ${p.percentage === 100 ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]' : 'bg-brand-600 shadow-[0_0_15px_rgba(79,70,229,0.4)]'}`}
+                                                        style={{ width: `${p.percentage}%` }}
+                                                    ></div>
+                                                </div>
                                             </div>
                                         </div>
-                                    ))}
+                                    )) : (
+                                        <div className="col-span-full py-20 flex flex-col items-center justify-center text-center opacity-20">
+                                            <BookOpen className="w-12 h-12 mb-4" />
+                                            <p className="text-xs font-black uppercase tracking-widest">No activity data found for this student</p>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
 
-                        <div className="p-6 bg-slate-50 dark:bg-slate-800/30 border-t border-slate-100 dark:border-slate-800 flex justify-end">
+                        {/* Modal Footer */}
+                        <div className="p-8 px-12 bg-slate-50 dark:bg-slate-800/30 border-t-2 border-slate-50 dark:border-slate-800/50 flex flex-col sm:flex-row items-center justify-between gap-6">
+                            <div className="flex items-center gap-6">
+                                <div className="flex flex-col">
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Status Report</span>
+                                    <span className="text-xs font-bold text-emerald-500 flex items-center gap-2 uppercase tracking-tighter">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> System Synchronized
+                                    </span>
+                                </div>
+                            </div>
                             <button
                                 onClick={() => setSelectedStudent(null)}
-                                className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl text-xs font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all"
+                                className="w-full sm:w-auto px-16 py-5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] text-xs font-black uppercase tracking-[0.3em] hover:scale-105 active:scale-95 transition-all duration-500 shadow-2xl shadow-slate-900/20 dark:shadow-white/10"
                             >
-                                Kapat
+                                CLOSE PERSPECTIVE
                             </button>
                         </div>
                     </div>
@@ -356,3 +422,4 @@ export const StudentsView: React.FC = () => {
         </div>
     );
 };
+

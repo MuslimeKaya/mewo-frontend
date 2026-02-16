@@ -125,7 +125,10 @@ export const authService = {
         const response = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` },
         });
-        if (!response.ok) throw new Error('Öğrenci bilgileri yüklenemedi');
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `Öğrenci bilgileri yüklenemedi (${response.status})`);
+        }
         return response.json();
     },
 

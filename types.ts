@@ -22,6 +22,7 @@ export interface User {
   access_token?: string;
   avatar?: string;
   bio?: string;
+  updatedAt?: string;
   studentEnrollments?: Enrollment[];
   teacherEnrollments?: Enrollment[];
 }

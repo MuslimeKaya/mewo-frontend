@@ -62,6 +62,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const [otp, setOtp] = useState('');
   const [showOtpInput, setShowOtpInput] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const resetForm = () => {
@@ -101,7 +102,11 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
         }
 
         await authService.signup(email, password, firstName, lastName, role);
-        setShowOtpInput(true);
+        setMode('signin');
+        setError(null);
+        // OTP input triggers only if backend throws 'unverified' during SIGNIN.
+        // For new signups, we auto-verify now to match teacher logic.
+        alert('Kaydınız başarılı! Şimdi giriş yapabilirsiniz.');
       } else {
         const user = await authService.signin(email, password);
         if (user) onLogin(user);
@@ -138,54 +143,17 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
   const handleResendOtp = async () => {
     setLoading(true);
     setError(null);
+    setResendSuccess(false);
     try {
-      // Assuming you have an API endpoint or logic to resend OTP
-      // For now, we reuse the signup logic which might not be ideal but often triggers a new OTP
-      // OR better, we need a specific 'resend-otp' endpoint.
-      // Considering the current services, you might not have a direct 'resendOtp' method exposed in authService.
-      // If authService has no resend method, we might need to add it or use a workaround.
-      // START RESEARCH: Looking at authService in previous turns, I see 'sendOtp' but it takes no args and uses token? No that's for password reset maybe.
-      // Wait, let's look at `authService` again.
-      // Checking `authService.ts` content from Step 39:
-      // It has `sendOtp` but it requires a token (authenticated user). Here we are not authenticated yet.
-      // It has `signup` which sends OTP.
-      // It doesn't seem to have a dedicated public 'resend-verification-otp' endpoint.
-      // Most systems reuse 'signup' or have a specific one.
-      // Let's assume for now we can't easily resend without backend changes, BUT the user asked for the OPTION.
-      // I will add the UI button and mock the function or try to re-trigger signup if safe,
-      // actually, calling signup again with same details often resends OTP in many implementations if user exists but unverified.
-      // Let's try calling signup again as a "Resend" mechanism if the backend supports it (idempotency).
-      // If not, I should probably add a proper endpoint.
-      // Looking at `auth.service.ts` (backend) in Step 42:
-      // `signupLocal` checks if user exists?
-      // `signupLocal` does: `this.usersRepository.create(...)`. It doesn't seem to check if email exists first?
-      // Wait, User entity has `@Column({ unique: true }) email: string`. So `save()` will throw an error if email exists.
-      // So calling signup again will fail.
-      // I need to implement `resendVerificationOtp` in backend and frontend.
-      // BUT I cannot modify backend easily without user permission?
-      // "You are pair programming with a USER to solve their coding task. The task may require creating a new codebase, modifying or debugging an existing codebase..."
-      // I can modify backend.
-      // So I will:
-      // 1. Add `resendVerificationOtp` to `AuthService` (backend).
-      // 2. Add `resendVerificationOtp` to `AuthController` (backend).
-      // 3. Add `resendVerificationOtp` to `authService` (frontend).
-      // 4. Use it here.
-
-      // WAIT, I should do this in a separate step or just add the button now and wire it up?
-      // The user asked for "kod girme veya tekrar kod gönder seçeneği olsun".
-      // Let's first add the UI button and the logic to call the frontend service.
-      // I will implement the backend part in next steps if needed, or if I can do it all now.
-      // I'll start by adding the button to UI in this turn.
-
       await authService.resendVerificationOtp(email);
-      alert('Kod tekrar gönderildi!');
+      setResendSuccess(true);
+      setTimeout(() => setResendSuccess(false), 5000);
     } catch (err: any) {
-      setError(err.message || 'Kod gönderilemedi.');
+      setError(err.message || 'Kod tekrar gönderilemedi.');
     } finally {
       setLoading(false);
     }
   };
-
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: {
@@ -360,6 +328,17 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       />
                     </div>
 
+                    {resendSuccess && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-200 dark:border-emerald-800/50 p-4 rounded-2xl text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center space-x-3"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <p>Yeni kod başarıyla gönderildi!</p>
+                      </motion.div>
+                    )}
+
                     {error && (
                       <motion.div
                         initial={{ opacity: 0, scale: 0.95 }}
@@ -528,7 +507,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                   </form>
                 )}
 
-                <div className="mt-10 pt-10 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center space-y-6">
+                <div className="mt-10 pt-10 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center space-y-8">
                   <p className="text-[11px] font-bold text-slate-500">
                     {mode === 'signin' ? 'Hesabınız yok mu?' : 'Zaten üye misiniz?'}
                     <button
@@ -539,11 +518,22 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                     </button>
                   </p>
 
-                  <div className="flex items-center space-x-6">
-                    <button onClick={() => setShowPolicy({ open: true, type: 'privacy' })} className="text-[9px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors">Gizlilik</button>
-                    <div className="w-1.5 h-1.5 rounded-full bg-slate-200" />
-                    <button onClick={() => setShowPolicy({ open: true, type: 'terms' })} className="text-[9px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest transition-colors">Koşullar</button>
-                  </div>
+                  <footer className="w-full flex flex-col md:flex-row items-center justify-between gap-4 opacity-60 hover:opacity-100 transition-opacity">
+                    <div className="flex items-center space-x-3">
+                      <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tighter">Mewo Language Lab</span>
+                      <div className="w-[1px] h-3 bg-slate-200 dark:bg-slate-700"></div>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">© 2026</p>
+                    </div>
+
+                    <div className="flex items-center space-x-6">
+                      <button onClick={() => setShowPolicy({ open: true, type: 'support' })} className="text-[9px] font-black text-slate-400 hover:text-brand-600 uppercase tracking-widest transition-colors">Destek</button>
+                      <button onClick={() => setShowPolicy({ open: true, type: 'privacy' })} className="text-[9px] font-black text-slate-400 hover:text-brand-600 uppercase tracking-widest transition-colors">Gizlilik</button>
+                      <div className="w-[1px] h-3 bg-slate-100 dark:bg-slate-800"></div>
+                      <p className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">
+                        Happy Hacking Space
+                      </p>
+                    </div>
+                  </footer>
                 </div>
               </motion.div>
             )}

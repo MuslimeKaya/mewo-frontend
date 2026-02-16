@@ -1,6 +1,6 @@
 
-import React, { useState, useRef } from 'react';
-import { User, Camera, Mail, User as UserIcon, Type, Save, LogOut, CheckCircle, AlertCircle, Loader2, Lock } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { User, Camera, Mail, User as UserIcon, Type, Save, LogOut, CheckCircle, AlertCircle, Loader2, Lock, Check } from 'lucide-react';
 import { User as UserType } from '../types';
 import { authService, API_URL } from '../services/auth';
 
@@ -87,27 +87,46 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ user, onUpdateUser, 
         }
     };
 
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [justUploaded, setJustUploaded] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            if (previewUrl) URL.revokeObjectURL(previewUrl);
+        };
+    }, [previewUrl]);
+
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Optimistic UI: Hemen göster
+        const localPreview = URL.createObjectURL(file);
+        setPreviewUrl(localPreview);
         setAvatarLoading(true);
         setStatus(null);
+        setJustUploaded(false);
 
         try {
             const updatedUser = await authService.uploadAvatar(file);
             onUpdateUser(updatedUser);
+            setPreviewUrl(null);
+            setJustUploaded(true);
             setStatus({ type: 'success', message: 'Profil fotoğrafı güncellendi!' });
+            setTimeout(() => setJustUploaded(false), 3000);
         } catch (error: any) {
+            setPreviewUrl(null);
             setStatus({ type: 'error', message: error.message || 'Dosya yüklenirken hata oluştu' });
         } finally {
             setAvatarLoading(false);
         }
     };
 
-    const avatarUrl = user.avatar
+    const serverAvatarUrl = user.avatar
         ? (user.avatar.startsWith('http') ? user.avatar : `${API_URL.replace('/api', '')}${user.avatar}`)
         : null;
+
+    const displayAvatar = previewUrl || serverAvatarUrl;
 
     return (
         <div className="max-w-sm mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
@@ -116,24 +135,24 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ user, onUpdateUser, 
                     {/* Instagram-style Header: Avatar + Stats */}
                     <div className="flex items-center gap-5 mb-6">
                         <div className="relative group cursor-pointer shrink-0" onClick={() => fileInputRef.current?.click()}>
-                            <div className="w-20 h-20 rounded-full p-1 bg-gradient-to-tr from-orange-500 via-orange-500 to-orange-600 shadow-lg shadow-orange-500/20">
+                            <div className={`w-20 h-20 rounded-full p-1 transition-all duration-500 ${justUploaded ? 'bg-emerald-500 scale-110' : 'bg-gradient-to-tr from-orange-500 via-orange-500 to-orange-600'} shadow-lg ${justUploaded ? 'shadow-emerald-500/40' : 'shadow-orange-500/20'}`}>
                                 <div className="w-full h-full rounded-full overflow-hidden border-2 border-white dark:border-slate-900 bg-white dark:bg-slate-900 relative">
                                     {avatarLoading ? (
-                                        <div className="absolute inset-0 bg-slate-100/50 dark:bg-slate-800/50 flex items-center justify-center backdrop-blur-sm z-10">
-                                            <Loader2 className="w-5 h-5 text-brand-600 animate-spin" />
+                                        <div className="absolute inset-0 bg-slate-900/40 flex items-center justify-center backdrop-blur-[2px] z-10">
+                                            <div className="w-6 h-6 rounded-full border-2 border-white/20 border-t-white animate-spin"></div>
                                         </div>
                                     ) : null}
-                                    {avatarUrl ? (
-                                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover transition-transform group-hover:scale-110 duration-500" />
+                                    {displayAvatar ? (
+                                        <img src={displayAvatar} alt="Avatar" className={`w-full h-full object-cover transition-all duration-700 ${avatarLoading ? 'scale-110 blur-sm brightness-50' : 'scale-100 group-hover:scale-110'}`} />
                                     ) : (
                                         <div className="w-full h-full flex items-center justify-center text-brand-600 font-black text-xl uppercase">
-                                            {user.firstName[0]}{user.lastName[0]}
+                                            {(user.firstName?.[0] || 'U')}{(user.lastName?.[0] || '')}
                                         </div>
                                     )}
                                 </div>
                             </div>
-                            <div className="absolute bottom-0 right-0 p-1 bg-brand-600 text-white rounded-full shadow-lg border-2 border-white dark:border-slate-900">
-                                <Camera className="w-2.5 h-2.5" />
+                            <div className={`absolute bottom-0 right-0 p-1.5 ${justUploaded ? 'bg-emerald-500' : 'bg-brand-600'} text-white rounded-full shadow-lg border-2 border-white dark:border-slate-900 group-hover:scale-110 transition-all`}>
+                                {justUploaded ? <Check className="w-3 h-3" /> : <Camera className="w-3 h-3" />}
                             </div>
                             <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileChange} />
                         </div>

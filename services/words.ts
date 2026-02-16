@@ -104,7 +104,7 @@ export const wordsService = {
         return response.json();
     },
 
-    async sendAssignment(words: Word[], title?: string, description?: string, files?: File[]): Promise<any> {
+    async sendAssignment(words: Word[], title?: string, description?: string, files?: File[], studentIds?: string[]): Promise<any> {
         const formData = new FormData();
         formData.append('words', JSON.stringify(words));
         if (title) formData.append('title', title);
@@ -114,6 +114,10 @@ export const wordsService = {
             files.forEach(file => {
                 formData.append('files', file);
             });
+        }
+
+        if (studentIds && studentIds.length > 0) {
+            formData.append('studentIds', JSON.stringify(studentIds));
         }
 
         const response = await this.authFetch(`${API_URL}/words/teacher/assignments`, {
