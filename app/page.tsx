@@ -9,6 +9,7 @@ import { ResourcesView } from '@/components/ResourcesView';
 import { StudentsView } from '@/components/StudentsView';
 import { TeachersView } from '@/components/TeachersView';
 import { GrammarView } from '@/components/GrammarView';
+import { SettingsView } from '@/components/SettingsView';
 import { Login } from '@/components/Login';
 import { AppTab, User } from '@/types';
 import { wordsService } from '@/services/words';
@@ -24,6 +25,7 @@ export default function Home() {
         if (path === '/grammar' || path.startsWith('/grammar/')) return AppTab.GRAMMAR;
         if (path === '/students') return AppTab.STUDENTS;
         if (path === '/teachers') return AppTab.TEACHERS;
+        if (path === '/settings') return AppTab.SETTINGS;
         return AppTab.DASHBOARD;
     });
 
@@ -89,6 +91,7 @@ export default function Home() {
                     break;
                 case AppTab.STUDENTS: path = '/students'; break;
                 case AppTab.TEACHERS: path = '/teachers'; break;
+                case AppTab.SETTINGS: path = '/settings'; break;
                 case AppTab.DASHBOARD: path = '/hub'; break;
             }
         }
@@ -156,6 +159,8 @@ export default function Home() {
                 return currentUser ? <TeachersView user={currentUser} /> : null;
             case AppTab.GRAMMAR:
                 return <GrammarView user={currentUser} />;
+            case AppTab.SETTINGS:
+                return <SettingsView user={currentUser} onUpdateUser={setCurrentUser} onLogout={handleLogout} />;
             default:
                 return <Dashboard onNavigate={setActiveTab} user={currentUser!} />;
         }

@@ -21,7 +21,7 @@ export const authService = {
         return { ...userData, access_token: token };
     },
 
-    async signup(email: string, password: string, firstName: string, lastName: string, role: UserRole): Promise<User> {
+    async signup(email: string, password: string, firstName: string, lastName: string, role: UserRole): Promise<{ message: string }> {
         const response = await fetch(`${API_URL}/auth/local/signup`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -31,6 +31,21 @@ export const authService = {
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message || 'Signup failed');
+        }
+
+        return await response.json();
+    },
+
+    async verifySignup(email: string, otp: string): Promise<User> {
+        const response = await fetch(`${API_URL}/auth/local/verify-signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, otp }),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Doğrulama başarısız');
         }
 
         const { access_token } = await response.json();
@@ -140,6 +155,78 @@ export const authService = {
             headers: { 'Authorization': `Bearer ${token}` },
         });
         if (!response.ok) throw new Error('Öğrenci ilerlemesi yüklenemedi');
+        return response.json();
+    },
+
+    async updateProfile(data: { firstName?: string; lastName?: string; bio?: string }): Promise<User> {
+        const token = this.getToken();
+        const response = await fetch(`${API_URL}/auth/profile`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) throw new Error('Profil güncellenemedi');
+        const updatedUser = await response.json();
+        const fullUser = { ...updatedUser, access_token: token };
+        localStorage.setItem('mewo_user', JSON.stringify(fullUser));
+        return fullUser;
+    },
+
+    async uploadAvatar(file: File): Promise<User> {
+        const token = this.getToken();
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const response = await fetch(`${API_URL}/auth/avatar`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData,
+        });
+
+        if (!response.ok) throw new Error('Avatar yüklenemedi');
+        const updatedUser = await response.json();
+        const fullUser = { ...updatedUser, access_token: token };
+        localStorage.setItem('mewo_user', JSON.stringify(fullUser));
+        return fullUser;
+    },
+
+    async changePassword(data: { otp?: string; newPassword?: string }): Promise<any> {
+        const token = this.getToken();
+        const response = await fetch(`${API_URL}/auth/change-password`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(data),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Şifre değiştirilemedi');
+        }
+        return response.json();
+    },
+
+    async sendOtp(): Promise<any> {
+        const token = this.getToken();
+        const response = await fetch(`${API_URL}/auth/send-otp`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Doğrulama kodu gönderilemedi');
+        }
         return response.json();
     },
 

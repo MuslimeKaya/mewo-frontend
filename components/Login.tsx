@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Cat, GraduationCap, UserCheck, ArrowRight, Loader2, Mail, Lock, User as UserIcon, ChevronLeft, Sparkles, Globe, Shield } from 'lucide-react';
+import { Cat, GraduationCap, UserCheck, ArrowRight, Loader2, Mail, Lock, User as UserIcon, ChevronLeft, Sparkles, Globe, Shield, Eye, EyeOff } from 'lucide-react';
 import { User, UserRole } from '../types';
 import { authService } from '../services/auth';
 import { PolicyModal } from './PolicyModal';
@@ -56,8 +56,30 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordConfirm, setPasswordConfirm] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [otp, setOtp] = useState('');
+  const [showOtpInput, setShowOtpInput] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const resetForm = () => {
+    setEmail('');
+    setPassword('');
+    setPasswordConfirm('');
+    setFirstName('');
+    setLastName('');
+    setOtp('');
+    setError(null);
+    setShowOtpInput(false);
+    setShowPassword(false);
+    setShowConfirmPassword(false);
+  };
+
+  React.useEffect(() => {
+    resetForm();
+  }, [mode, view]);
 
   const handleRoleSelect = (selectedRole: UserRole) => {
     setRole(selectedRole);
@@ -70,15 +92,40 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
     setError(null);
 
     try {
-      const user = mode === 'signin'
-        ? await authService.signin(email, password)
-        : await authService.signup(email, password, firstName, lastName, role);
+      if (mode === 'signup') {
+        if (password !== passwordConfirm) {
+          throw new Error('Şifreler uyuşmuyor!');
+        }
+        if (password.length < 8 || password.length > 20) {
+          throw new Error('Şifre 8 ile 20 karakter arasında olmalıdır');
+        }
 
-      if (user) {
-        onLogin(user);
+        await authService.signup(email, password, firstName, lastName, role);
+        setShowOtpInput(true);
+      } else {
+        const user = await authService.signin(email, password);
+        if (user) onLogin(user);
       }
     } catch (err: any) {
-      setError(err.message || 'Bir hata oluştu. Lütfen tekrar deneyin.');
+      console.error('Login Error:', err);
+      // Backend'den dönen hatayı yakala
+      const message = err.response?.data?.message || err.message || 'Bir hata oluştu. Lütfen tekrar deneyin.';
+      setError(Array.isArray(message) ? message[0] : message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+
+    try {
+      const user = await authService.verifySignup(email, otp);
+      if (user) onLogin(user);
+    } catch (err: any) {
+      setError(err.message || 'Doğrulama başarısız.');
     } finally {
       setLoading(false);
     }
@@ -225,107 +272,191 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                 </div>
 
                 <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight mb-2">
-                  {mode === 'signin' ? 'Tekrar Hoş Geldiniz' : 'Mewo\'ya Katılın'}
+                  {showOtpInput ? 'Hesabı Doğrula' : (mode === 'signin' ? 'Tekrar Hoş Geldiniz' : 'Mewo\'ya Katılın')}
                 </h2>
                 <p className="text-sm font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-8">
-                  {role === 'student' ? 'Öğrenci Girişi' : 'Eğitmen Girişi'}
+                  {showOtpInput ? 'E-postanızı Kontrol Edin' : (role === 'student' ? 'Öğrenci Girişi' : 'Eğitmen Girişi')}
                 </p>
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                  {mode === 'signup' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ad</label>
-                        <div className="relative group">
-                          <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-600 transition-colors" />
-                          <input
-                            type="text"
-                            required
-                            value={firstName}
-                            onChange={(e) => setFirstName(e.target.value)}
-                            className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-600 outline-none transition-all placeholder:text-slate-500"
-                            placeholder="Adınız"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Soyad</label>
-                        <div className="relative group">
-                          <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-600 transition-colors" />
-                          <input
-                            type="text"
-                            required
-                            value={lastName}
-                            onChange={(e) => setLastName(e.target.value)}
-                            className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-600 outline-none transition-all placeholder:text-slate-500"
-                            placeholder="Soyadınız"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">E-posta</label>
-                    <div className="relative group">
-                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-600 transition-colors" />
+                {showOtpInput ? (
+                  <form onSubmit={handleVerifyOtp} className="space-y-6">
+                    <p className="text-[11px] font-bold text-slate-500 leading-relaxed text-center">
+                      <span className="text-brand-600">{email}</span> adresine 6 haneli bir doğrulama kodu gönderdik. Lütfen kodu aşağıya girin.
+                    </p>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-center block w-full">DOĞRULAMA KODU</label>
                       <input
-                        type="email"
+                        type="text"
                         required
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-600 outline-none transition-all placeholder:text-slate-500"
-                        placeholder="Ör: mehmet@mewo.com"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 text-2xl font-black text-center tracking-[0.5em] focus:ring-4 focus:ring-brand-500/10 focus:border-brand-600 outline-none transition-all"
+                        placeholder="000000"
+                        maxLength={6}
                       />
                     </div>
-                  </div>
 
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center px-1">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Şifre</label>
-                      {mode === 'signin' && (
-                        <button type="button" className="text-[10px] font-black text-brand-600 hover:text-brand-500 uppercase tracking-widest">Unuttum?</button>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800/50 p-4 rounded-2xl text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center space-x-3"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                        <p>{error}</p>
+                      </motion.div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-brand-600 text-white rounded-[2rem] py-5 font-black uppercase tracking-[0.2em] text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl flex items-center justify-center space-x-3 group"
+                    >
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <span>DOĞRULA VE GİRİŞ YAP</span>}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowOtpInput(false)}
+                      className="w-full text-[10px] font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest text-center"
+                    >
+                      BİLGİLERİ DÜZENLE
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    {mode === 'signup' && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ad</label>
+                          <div className="relative group">
+                            <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-600 transition-colors" />
+                            <input
+                              type="text"
+                              required
+                              value={firstName}
+                              onChange={(e) => setFirstName(e.target.value)}
+                              className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-600 outline-none transition-all placeholder:text-slate-500"
+                              placeholder="Adınız"
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Soyad</label>
+                          <div className="relative group">
+                            <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-600 transition-colors" />
+                            <input
+                              type="text"
+                              required
+                              value={lastName}
+                              onChange={(e) => setLastName(e.target.value)}
+                              className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-600 outline-none transition-all placeholder:text-slate-500"
+                              placeholder="Soyadınız"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">E-posta</label>
+                      <div className="relative group">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-600 transition-colors" />
+                        <input
+                          type="email"
+                          required
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-600 outline-none transition-all placeholder:text-slate-500"
+                          placeholder="Ör: mehmet@mewo.com"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center px-1">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Şifre</label>
+                          {mode === 'signin' && (
+                            <button type="button" className="text-[10px] font-black text-brand-600 hover:text-brand-500 uppercase tracking-widest">Unuttum?</button>
+                          )}
+                        </div>
+                        <div className="relative group">
+                          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-600 transition-colors" />
+                          <input
+                            type={showPassword ? 'text' : 'password'}
+                            name="password"
+                            autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+                            required
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 pl-12 pr-12 text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-600 outline-none transition-all"
+                            placeholder="••••••••"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+
+                      {mode === 'signup' && (
+                        <div className="space-y-2">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Şifre (Tekrar)</label>
+                          <div className="relative group">
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-600 transition-colors" />
+                            <input
+                              type={showConfirmPassword ? 'text' : 'password'}
+                              name="confirmPassword"
+                              autoComplete="new-password"
+                              required
+                              value={passwordConfirm}
+                              onChange={(e) => setPasswordConfirm(e.target.value)}
+                              className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 pl-12 pr-12 text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-600 outline-none transition-all"
+                              placeholder="••••••••"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                            >
+                              {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </div>
-                    <div className="relative group">
-                      <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-600 transition-colors" />
-                      <input
-                        type="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-slate-100/50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:ring-4 focus:ring-brand-500/10 focus:border-brand-600 outline-none transition-all"
-                        placeholder="••••••••"
-                      />
-                    </div>
-                  </div>
 
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      className="bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800/50 p-4 rounded-2xl text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center space-x-3"
-                    >
-                      <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-                      <p>{error}</p>
-                    </motion.div>
-                  )}
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] py-5 font-black uppercase tracking-[0.2em] text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl flex items-center justify-center space-x-3 group"
-                  >
-                    {loading ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <>
-                        <span>{mode === 'signin' ? 'Giriş Yap' : 'Kayıt Ol'}</span>
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-rose-50 dark:bg-rose-900/10 border border-rose-200 dark:border-rose-800/50 p-4 rounded-2xl text-[11px] font-bold text-rose-600 dark:text-rose-400 flex items-center space-x-3"
+                      >
+                        <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
+                        <p>{error}</p>
+                      </motion.div>
                     )}
-                  </button>
-                </form>
+
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="w-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-[2rem] py-5 font-black uppercase tracking-[0.2em] text-xs hover:scale-[1.02] active:scale-[0.98] transition-all shadow-2xl flex items-center justify-center space-x-3 group"
+                    >
+                      {loading ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <>
+                          <span>{mode === 'signin' ? 'Giriş Yap' : 'Kayıt Ol'}</span>
+                          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
+                    </button>
+                  </form>
+                )}
 
                 <div className="mt-10 pt-10 border-t border-slate-100 dark:border-slate-800 flex flex-col items-center space-y-6">
                   <p className="text-[11px] font-bold text-slate-500">

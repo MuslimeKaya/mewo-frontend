@@ -42,6 +42,10 @@ const nextConfig: NextConfig = {
             {
                 source: '/grammar/:path*',
                 destination: '/',
+            },
+            {
+                source: '/settings',
+                destination: '/',
             }
         ];
     },

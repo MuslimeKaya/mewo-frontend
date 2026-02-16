@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Megaphone, Calendar, Clock, ChevronRight, Plus, Trash2, Loader2, Info, AlertCircle, Sparkles } from 'lucide-react';
+import { Megaphone, Calendar, Trash2, Plus, Loader2, ChevronRight, Info, Clock } from 'lucide-react';
 import { bulletinsService, Bulletin } from '../services/bulletins';
 import { User } from '../types';
+import { API_URL } from '../services/auth';
 
 interface BulletinBoardProps {
     user: User;
@@ -234,8 +235,16 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
                                         </button>
 
                                         <div className="flex items-center gap-1.5 grayscale opacity-60">
-                                            <div className="w-4 h-4 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-[7px] font-black uppercase border border-slate-200 dark:border-slate-700">
-                                                {bulletin.teacher?.firstName?.[0] || 'T'}
+                                            <div className="w-4 h-4 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center text-[7px] font-black uppercase border border-slate-200 dark:border-slate-700 overflow-hidden">
+                                                {bulletin.teacher?.avatar ? (
+                                                    <img
+                                                        src={bulletin.teacher.avatar.startsWith('http') ? bulletin.teacher.avatar : `${API_URL.replace('/api', '')}${bulletin.teacher.avatar}`}
+                                                        alt="Avatar"
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    bulletin.teacher?.firstName?.[0] || 'T'
+                                                )}
                                             </div>
                                             <span className="text-[9px] font-bold text-slate-400 capitalize">
                                                 {bulletin.teacher?.firstName} {bulletin.teacher?.lastName}

@@ -243,51 +243,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
 
   return (
     <div className="px-4 py-4 md:px-6 md:py-6 space-y-6 md:space-y-8 animate-in fade-in duration-700">
-      <div className="flex items-center justify-between bg-white dark:bg-slate-900 p-3.5 px-5 rounded-3xl border border-slate-200 dark:border-slate-800 premium-shadow hover:shadow-lg transition-all duration-300">
-        <div className="flex items-center space-x-4">
-          <div className="relative group/avatar">
-            <div className="w-10 h-10 bg-brand-50 dark:bg-brand-900/20 rounded-xl flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Cat className="w-6 h-6 text-brand-600" />
-            </div>
-            <div className="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full"></div>
-          </div>
-          <div>
-            <h2 className="text-sm font-black text-slate-900 dark:text-white tracking-tight leading-none uppercase">
-              {user.firstName} {user.lastName}
-            </h2>
-            <div className="flex items-center text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1.5">
-              {user.role === 'teacher' ? (
-                <div className="flex items-center">
-                  <ShieldCheck className="w-3.5 h-3.5 text-brand-500 mr-1.5" />
-                  <span>Eğitmen</span>
-                </div>
-              ) : (
-                <div className="flex items-center">
-                  <Zap className="w-3.5 h-3.5 text-brand-500 mr-1.5" />
-                  <span>{user.xp || 0} XP • Seviye {user.level || 1}</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <div className="bg-orange-50 dark:bg-orange-950/20 px-3 py-1.5 rounded-xl border border-orange-100/50 dark:border-orange-900/30 flex items-center hover:scale-105 transition-transform cursor-pointer group/streak">
-            <Flame className="w-3.5 h-3.5 text-orange-500 mr-2 group-hover/streak:animate-bounce" />
-            <span className="text-[11px] font-black text-orange-700 dark:text-orange-400">{user.currentStreak || 0}</span>
-          </div>
-          {user.role === 'teacher' ? (
-            <div className="bg-brand-50 dark:bg-brand-950/10 px-3 py-1.5 rounded-xl border border-brand-100/50 dark:border-brand-900/20 flex items-center">
-              <ShieldCheck className="w-3.5 h-3.5 text-brand-600 mr-2" />
-              <span className="text-[10px] font-black text-brand-700 dark:text-brand-400 uppercase tracking-widest">Doğrulanmış</span>
-            </div>
-          ) : (
-            <div className="bg-brand-50 dark:bg-brand-950/20 px-3 py-1.5 rounded-xl border border-brand-100/50 dark:border-brand-900/30 flex items-center hover:scale-105 transition-transform cursor-pointer group/xp">
-              <Zap className="w-3.5 h-3.5 text-brand-600 mr-2 group-hover/xp:animate-pulse" />
-              <span className="text-[11px] font-black text-brand-700 dark:text-brand-400">{user.xp || 0}</span>
-            </div>
-          )}
-        </div>
+      {/* Minimalist Greeting Section */}
+      <div className="mb-2">
+        <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+          Hoş geldin, <span className="text-brand-600">{user.firstName}</span>
+        </h1>
       </div>
 
       {user.role === 'teacher' && (

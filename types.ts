@@ -20,7 +20,8 @@ export interface User {
   level: number;
   currentStreak: number;
   access_token?: string;
-  specialty?: string;
+  avatar?: string;
+  bio?: string;
   studentEnrollments?: Enrollment[];
   teacherEnrollments?: Enrollment[];
 }
@@ -57,5 +58,6 @@ export enum AppTab {
   LIBRARY = 'library',
   STUDENTS = 'students',
   TEACHERS = 'teachers',
-  GRAMMAR = 'grammar'
+  GRAMMAR = 'grammar',
+  SETTINGS = 'settings'
 }

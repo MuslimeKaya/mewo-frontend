@@ -21,6 +21,7 @@ export interface Bulletin {
     teacher?: {
         firstName: string;
         lastName: string;
+        avatar?: string;
     };
 }
 

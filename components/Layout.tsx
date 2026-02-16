@@ -98,10 +98,16 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
       case AppTab.LIBRARY: path = '/library'; break;
       case AppTab.STUDENTS: path = '/students'; break;
       case AppTab.TEACHERS: path = '/teachers'; break;
+      case AppTab.SETTINGS: path = '/settings'; break;
       case AppTab.DASHBOARD: path = '/hub'; break;
     }
     window.history.pushState({}, '', path);
   };
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+  const avatarUrl = user.avatar
+    ? (user.avatar.startsWith('http') ? user.avatar : `${API_URL.replace('/api', '')}${user.avatar}`)
+    : null;
 
   return (
     <div className="min-h-full flex flex-col bg-[#F8FAFC] dark:bg-slate-950">
@@ -129,7 +135,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                   : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-slate-800/40'
                   }`}
               >
-                <item.icon className={`w-4 h-4 mr-2 ${activeTab === item.id ? 'text-brand-600' : 'text-slate-400 dark:text-slate-500'}`} />
+                {item.id === AppTab.SETTINGS && avatarUrl ? (
+                  <img src={avatarUrl} className={`w-4 h-4 mr-2 rounded-full object-cover ring-2 ${activeTab === item.id ? 'ring-brand-500' : 'ring-transparent'}`} />
+                ) : (
+                  <item.icon className={`w-4 h-4 mr-2 ${activeTab === item.id ? 'text-brand-600' : 'text-slate-400 dark:text-slate-500'}`} />
+                )}
                 {item.label}
               </button>
             ))}
@@ -154,7 +164,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
               </div>
             )}
 
-            {/* Action Buttons: Notification, Theme & Logout */}
+            {/* Action Buttons: Notification, Theme & Avatar */}
             <div className="flex items-center space-x-1.5 md:space-x-2 pl-2 md:pl-4">
               <button
                 onClick={handleOpenBulletins}
@@ -171,11 +181,25 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
               >
                 {isDarkMode ? <Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Moon className="w-4 h-4 md:w-5 md:h-5" />}
               </button>
+
               <button
                 onClick={onLogout}
                 className="p-2 text-slate-400 hover:text-rose-500 transition-colors active:scale-90 bg-slate-100/50 dark:bg-slate-900/50 rounded-xl border border-slate-200/50 dark:border-slate-800/50"
               >
                 <LogOut className="w-4 h-4 md:w-5 md:h-5" />
+              </button>
+
+              <button
+                onClick={() => handleTabChange(AppTab.SETTINGS)}
+                className={`p-1 transition-all active:scale-90 rounded-full border-2 ${activeTab === AppTab.SETTINGS ? 'border-brand-600 scale-105 shadow-lg shadow-brand-500/10' : 'border-transparent'}`}
+              >
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-slate-100 dark:bg-slate-800 flex items-center justify-center">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="User" className="w-full h-full object-cover" />
+                  ) : (
+                    <UserIcon className="w-4 h-4 text-slate-400" />
+                  )}
+                </div>
               </button>
             </div>
           </div>
@@ -249,7 +273,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                 )}
                 <div className={`p-2 rounded-2xl transition-all duration-300 ${isActive ? 'bg-brand-600 text-white shadow-lg shadow-brand-500/40 scale-110' : 'text-slate-400 dark:text-slate-500'
                   }`}>
-                  <item.icon className="w-5 h-5" />
+                  {item.id === AppTab.SETTINGS && avatarUrl ? (
+                    <img src={avatarUrl} className={`w-5 h-5 rounded-full object-cover ring-1 ${isActive ? 'ring-white' : 'ring-transparent'}`} />
+                  ) : (
+                    <item.icon className="w-5 h-5" />
+                  )}
                 </div>
                 <span className={`text-[8px] font-black uppercase tracking-widest mt-1 transition-colors ${isActive ? 'text-brand-600 dark:text-brand-400' : 'text-slate-400'
                   }`}>
