@@ -418,7 +418,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                 <ShieldCheck className="w-14 h-14 relative z-10" />
               </div>
               <div className="space-y-4 relative z-10">
-                <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Eğitmen Onayı Bekleniyor</h3>
+                <h3 className="text-xl md:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Eğitmen Onayı Bekleniyor</h3>
                 <p className="text-base font-bold text-slate-400 max-w-sm mx-auto leading-relaxed">
                   Mewo dünyasına tam erişim sağlamak için bir eğitmen tarafından onaylanman gerekiyor. Bu sırada "Eğitmen Keşfet" kısmından başvurularını kontrol edebilirsin.
                 </p>
@@ -493,7 +493,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                                         {new Date(selectedAssignment.createdAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}
                                       </span>
                                     </div>
-                                    <h4 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight uppercase leading-none">
+                                    <h4 className="text-xl font-black text-slate-900 dark:text-white tracking-tight uppercase leading-none">
                                       {selectedAssignment.title || 'Başlıksız Ödev'}
                                     </h4>
                                     {selectedAssignment.description && (
@@ -735,10 +735,10 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                     <Sparkles className="w-3.5 h-3.5 text-brand-400 animate-pulse" />
                     <span>Mewo AI Tutor Lab</span>
                   </div>
-                  <h3 className="text-4xl md:text-6xl font-black leading-[1.05] tracking-tighter group-hover:translate-x-1 transition-transform">
+                  <h3 className="text-2xl md:text-3xl font-black leading-[1.1] tracking-tight group-hover:translate-x-1 transition-transform">
                     Konuşma <br /> <span className="text-brand-400 italic">Yeteneklerini <br /> Geliştir.</span>
                   </h3>
-                  <p className="text-slate-400 text-base md:text-xl max-w-sm font-medium leading-relaxed">
+                  <p className="text-slate-400 text-sm md:text-base max-w-xs font-medium leading-relaxed">
                     Yapay zeka eğitmenin Mewo ile 7/24 konuşma pratiği yap ve anlık geri bildirim al.
                   </p>
                   <button

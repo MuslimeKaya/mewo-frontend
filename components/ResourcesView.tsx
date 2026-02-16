@@ -19,10 +19,10 @@ export const ResourcesView: React.FC = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-6">
         {materials.map((res, i) => (
-          <a 
-            key={i} 
-            href={res.url} 
-            target="_blank" 
+          <a
+            key={i}
+            href={res.url}
+            target="_blank"
             rel="noopener noreferrer"
             className="group block bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-[2.5rem] hover:border-brand-400 dark:hover:border-brand-600 hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
           >
@@ -48,7 +48,7 @@ export const ResourcesView: React.FC = () => {
       <div className="group relative bg-slate-900 dark:bg-slate-900 border border-slate-800 dark:border-slate-800 rounded-[3.5rem] p-10 text-white overflow-hidden shadow-2xl hover:shadow-brand-900/50 transition-all duration-500">
         <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 rounded-full blur-3xl -mr-20 -mt-20 group-hover:bg-brand-500/20 transition-all duration-700"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl -ml-20 -mb-20 group-hover:bg-emerald-500/20 transition-all duration-700"></div>
-        
+
         <div className="relative z-10">
           <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
             <div className="max-w-xl text-center lg:text-left">
@@ -56,17 +56,17 @@ export const ResourcesView: React.FC = () => {
                 <Star className="w-3 h-3 fill-current" />
                 <span>Phrase of the Day</span>
               </div>
-              <h3 className="text-4xl font-black mb-4 tracking-tight group-hover:translate-x-1 transition-transform">"In the long run"</h3>
-              <p className="text-slate-300 text-lg mb-8 leading-relaxed">
+              <h3 className="text-2xl md:text-3xl font-black mb-4 tracking-tight group-hover:translate-x-1 transition-transform">"In the long run"</h3>
+              <p className="text-slate-300 text-sm md:text-base mb-8 leading-relaxed">
                 Meaning: Relating to a period of time that is far into the future.
-                <br/>
+                <br />
                 <span className="italic text-brand-300 mt-2 block font-mono text-sm group-hover:text-white transition-colors">"Consistent practice will pay off in the long run."</span>
               </p>
               <button className="bg-white text-slate-900 px-8 py-4 rounded-2xl font-bold hover:bg-brand-600 hover:text-white transition-all active:scale-95">
                 Save for Later
               </button>
             </div>
-            
+
             <div className="bg-white/5 border border-white/10 p-8 rounded-[2rem] backdrop-blur-sm w-full lg:w-80 hover:bg-white/10 transition-colors duration-300">
               <h4 className="text-sm font-bold text-brand-300 uppercase tracking-widest mb-6">Study Tip</h4>
               <div className="space-y-6">

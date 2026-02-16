@@ -260,7 +260,7 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
             <a href="#" className="text-slate-400 hover:text-brand-600 transition-colors"><Cat className="w-5 h-5" /></a>
             <div className="w-[1px] h-4 bg-slate-200 dark:bg-slate-800"></div>
             <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-widest italic group">
-              Made with <span className="text-rose-500 group-hover:animate-pulse">❤️</span> by <span className="text-brand-600">Expert Team</span>
+              Made with <span className="text-rose-500 group-hover:animate-pulse">❤️</span> by <span className="text-brand-600">Happy Hacking Space</span>
             </p>
           </div>
         </div>

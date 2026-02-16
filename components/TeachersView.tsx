@@ -17,7 +17,7 @@ export const TeachersView: React.FC<TeachersViewProps> = ({ user }) => {
                         <div className="w-2 h-2 bg-brand-600 rounded-full animate-pulse" />
                         <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-70">Elit Eğitmen Ağı</span>
                     </div>
-                    <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none">
+                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase leading-none">
                         AKADEMİK <span className="text-brand-600 italic">KADRO</span>
                     </h2>
                     <p className="text-sm font-bold text-slate-400 uppercase tracking-widest max-w-2xl leading-relaxed">

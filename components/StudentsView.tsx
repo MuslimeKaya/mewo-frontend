@@ -94,7 +94,7 @@ export const StudentsView: React.FC = () => {
                         <ShieldCheck className="w-4 h-4" />
                         <span className="text-[10px] font-black uppercase tracking-[0.2em]">Erişim ve Onay Paneli</span>
                     </div>
-                    <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase leading-none">
+                    <h2 className="text-2xl md:text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase leading-none">
                         DERS <span className="text-brand-600">YÖNETİMİ</span>
                     </h2>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">

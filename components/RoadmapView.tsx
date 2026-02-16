@@ -111,9 +111,11 @@ export const RoadmapView: React.FC = () => {
 
   return (
     <div className="space-y-8 animate-in slide-in-from-bottom-8 duration-500 max-w-4xl mx-auto px-4">
-      <div className="text-center">
-        <h2 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">Öğrenme Yolculuğun</h2>
-        <p className="text-slate-500 dark:text-slate-400 mt-2">Sıfırdan tam akıcılığa yapılandırılmış ilerleme.</p>
+      <div className="text-center space-y-2">
+        <h2 className="text-2xl md:text-3xl font-extrabold tracking-normal text-transparent bg-clip-text bg-gradient-to-r from-slate-900 via-brand-600 to-indigo-600 dark:from-white dark:via-brand-400 dark:to-indigo-400">
+          Öğrenme Yolculuğun
+        </h2>
+        <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">Sıfırdan tam akıcılığa yapılandırılmış ilerleme.</p>
       </div>
 
       <div className="relative space-y-6 pb-12">
