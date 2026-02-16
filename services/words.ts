@@ -11,6 +11,7 @@ export interface Word {
     cefr?: string;
     example?: string;
     teachers?: { id: string; firstName: string; lastName: string }[];
+    pronunciation?: string;
 }
 
 const searchCache = new Map<string, { items: Word[], total: number }>();

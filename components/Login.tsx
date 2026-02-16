@@ -111,6 +111,10 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
       // Backend'den dönen hatayı yakala
       const message = err.response?.data?.message || err.message || 'Bir hata oluştu. Lütfen tekrar deneyin.';
       setError(Array.isArray(message) ? message[0] : message);
+
+      if (message.includes('Hesabınız onaylanmamış')) {
+        setShowOtpInput(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -126,6 +130,57 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
       if (user) onLogin(user);
     } catch (err: any) {
       setError(err.message || 'Doğrulama başarısız.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Assuming you have an API endpoint or logic to resend OTP
+      // For now, we reuse the signup logic which might not be ideal but often triggers a new OTP
+      // OR better, we need a specific 'resend-otp' endpoint.
+      // Considering the current services, you might not have a direct 'resendOtp' method exposed in authService.
+      // If authService has no resend method, we might need to add it or use a workaround.
+      // START RESEARCH: Looking at authService in previous turns, I see 'sendOtp' but it takes no args and uses token? No that's for password reset maybe.
+      // Wait, let's look at `authService` again.
+      // Checking `authService.ts` content from Step 39:
+      // It has `sendOtp` but it requires a token (authenticated user). Here we are not authenticated yet.
+      // It has `signup` which sends OTP.
+      // It doesn't seem to have a dedicated public 'resend-verification-otp' endpoint.
+      // Most systems reuse 'signup' or have a specific one.
+      // Let's assume for now we can't easily resend without backend changes, BUT the user asked for the OPTION.
+      // I will add the UI button and mock the function or try to re-trigger signup if safe,
+      // actually, calling signup again with same details often resends OTP in many implementations if user exists but unverified.
+      // Let's try calling signup again as a "Resend" mechanism if the backend supports it (idempotency).
+      // If not, I should probably add a proper endpoint.
+      // Looking at `auth.service.ts` (backend) in Step 42:
+      // `signupLocal` checks if user exists?
+      // `signupLocal` does: `this.usersRepository.create(...)`. It doesn't seem to check if email exists first?
+      // Wait, User entity has `@Column({ unique: true }) email: string`. So `save()` will throw an error if email exists.
+      // So calling signup again will fail.
+      // I need to implement `resendVerificationOtp` in backend and frontend.
+      // BUT I cannot modify backend easily without user permission?
+      // "You are pair programming with a USER to solve their coding task. The task may require creating a new codebase, modifying or debugging an existing codebase..."
+      // I can modify backend.
+      // So I will:
+      // 1. Add `resendVerificationOtp` to `AuthService` (backend).
+      // 2. Add `resendVerificationOtp` to `AuthController` (backend).
+      // 3. Add `resendVerificationOtp` to `authService` (frontend).
+      // 4. Use it here.
+
+      // WAIT, I should do this in a separate step or just add the button now and wire it up?
+      // The user asked for "kod girme veya tekrar kod gönder seçeneği olsun".
+      // Let's first add the UI button and the logic to call the frontend service.
+      // I will implement the backend part in next steps if needed, or if I can do it all now.
+      // I'll start by adding the button to UI in this turn.
+
+      await authService.resendVerificationOtp(email);
+      alert('Kod tekrar gönderildi!');
+    } catch (err: any) {
+      setError(err.message || 'Kod gönderilemedi.');
     } finally {
       setLoading(false);
     }
@@ -284,7 +339,16 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                       <span className="text-brand-600">{email}</span> adresine 6 haneli bir doğrulama kodu gönderdik. Lütfen kodu aşağıya girin.
                     </p>
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 text-center block w-full">DOĞRULAMA KODU</label>
+                      <div className="flex justify-between items-center px-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center">DOĞRULAMA KODU</label>
+                        <button
+                          type="button"
+                          onClick={handleResendOtp}
+                          className="text-[10px] font-black text-brand-600 hover:text-brand-500 uppercase tracking-widest transition-colors"
+                        >
+                          KOD GELMEDİ Mİ?
+                        </button>
+                      </div>
                       <input
                         type="text"
                         required
@@ -333,6 +397,8 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                             <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-600 transition-colors" />
                             <input
                               type="text"
+                              name="firstName"
+                              autoComplete="given-name"
                               required
                               value={firstName}
                               onChange={(e) => setFirstName(e.target.value)}
@@ -347,6 +413,8 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                             <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-600 transition-colors" />
                             <input
                               type="text"
+                              name="lastName"
+                              autoComplete="family-name"
                               required
                               value={lastName}
                               onChange={(e) => setLastName(e.target.value)}
@@ -364,6 +432,8 @@ export const Login: React.FC<LoginProps> = ({ onLogin }) => {
                         <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-600 transition-colors" />
                         <input
                           type="email"
+                          name="email"
+                          autoComplete="email"
                           required
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}

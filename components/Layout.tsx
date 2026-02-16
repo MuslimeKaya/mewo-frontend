@@ -182,12 +182,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
                 {isDarkMode ? <Sun className="w-4 h-4 md:w-5 md:h-5" /> : <Moon className="w-4 h-4 md:w-5 md:h-5" />}
               </button>
 
-              <button
-                onClick={onLogout}
-                className="p-2 text-slate-400 hover:text-rose-500 transition-colors active:scale-90 bg-slate-100/50 dark:bg-slate-900/50 rounded-xl border border-slate-200/50 dark:border-slate-800/50"
-              >
-                <LogOut className="w-4 h-4 md:w-5 md:h-5" />
-              </button>
+
 
               <button
                 onClick={() => handleTabChange(AppTab.SETTINGS)}

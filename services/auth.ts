@@ -36,6 +36,21 @@ export const authService = {
         return await response.json();
     },
 
+    async resendVerificationOtp(email: string): Promise<{ message: string }> {
+        const response = await fetch(`${API_URL}/auth/local/resend-otp`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email }),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Kod tekrar gönderilemedi');
+        }
+
+        return await response.json();
+    },
+
     async verifySignup(email: string, otp: string): Promise<User> {
         const response = await fetch(`${API_URL}/auth/local/verify-signup`, {
             method: 'POST',

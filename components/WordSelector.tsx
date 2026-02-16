@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Check, Loader2, BookOpen, X, Zap, ChevronLeft, ArrowRight } from 'lucide-react';
+import { Search, Plus, Check, Loader2, BookOpen, X, Zap, ChevronLeft, ArrowRight, Volume2 } from 'lucide-react';
 import { wordsService, Word } from '../services/words';
 
 interface WordSelectorProps {
@@ -219,6 +219,18 @@ export const WordSelector: React.FC<WordSelectorProps> = ({ onWordAdded, refresh
                                             {isSent && (
                                                 <span className="text-[7px] font-black bg-slate-100 dark:bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded uppercase tracking-wider">OK</span>
                                             )}
+                                            {word.pronunciation && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        new Audio(word.pronunciation).play().catch(console.error);
+                                                    }}
+                                                    className="text-slate-400 hover:text-brand-500 transition-colors p-0.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded active:scale-95"
+                                                    title="Dinle"
+                                                >
+                                                    <Volume2 className="w-3 h-3" />
+                                                </button>
+                                            )}
                                         </div>
                                         <p className="text-xs font-black text-slate-800 dark:text-white leading-tight truncate" title={word.en}>{word.en}</p>
                                         <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-tight truncate mt-0.5" title={word.tr}>{word.tr}</p>
@@ -226,7 +238,7 @@ export const WordSelector: React.FC<WordSelectorProps> = ({ onWordAdded, refresh
                                     <button
                                         onClick={() => handleSelect(word)}
                                         disabled={actionLoading === word.id || isPassive}
-                                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all shrink-0 ${isPassive
+                                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all shrink-0 ml-1 ${isPassive
                                             ? 'bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600'
                                             : 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 hover:bg-brand-600 hover:text-white'
                                             }`}

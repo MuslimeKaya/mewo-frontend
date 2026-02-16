@@ -28,7 +28,8 @@ import {
   FileSpreadsheet,
   Calendar,
   ChevronLeft,
-  X
+  X,
+  Volume2
 } from 'lucide-react';
 import { AppTab, WeeklyGoal, User } from '../types';
 import { LiveTutor } from './LiveTutor';
@@ -80,6 +81,18 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
         </span>
         {isNew && !isLearned && (
           <span className="bg-emerald-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter animate-bounce">Yeni</span>
+        )}
+        {word.pronunciation && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              new Audio(word.pronunciation).play().catch(e => console.error("Audio play error:", e));
+            }}
+            className={`p-1 rounded-lg transition-all active:scale-95 ${isLearned ? 'text-white/60 hover:text-white hover:bg-white/10' : 'text-slate-400 hover:text-brand-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+            title="Dinle"
+          >
+            <Volume2 className="w-3 h-3" />
+          </button>
         )}
       </div>
       <p className="text-sm font-black truncate leading-tight">{word.en}</p>
