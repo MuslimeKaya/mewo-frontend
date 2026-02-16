@@ -4,6 +4,7 @@ import { AppTab, User } from '../types';
 import { BulletinBoard } from './BulletinBoard';
 import { bulletinsService } from '../services/bulletins';
 import { PolicyModal } from './PolicyModal';
+import { Logo } from './Logo';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -79,12 +80,12 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
 
   const navItems = [
     { id: AppTab.DASHBOARD, label: 'Hub', icon: LayoutDashboard },
-    { id: AppTab.PATHWAY, label: 'Roadmap', icon: Compass },
+    ...(user.role === 'student' ? [{ id: AppTab.PATHWAY, label: 'Roadmap', icon: Compass }] : []),
     { id: AppTab.GRAMMAR, label: 'Grammar', icon: BookOpen },
     { id: AppTab.AI_TUTOR, label: 'Chat', icon: Sparkles },
     { id: AppTab.LIBRARY, label: 'Library', icon: Library },
     ...(user.role === 'teacher' ? [{ id: AppTab.STUDENTS, label: 'Students', icon: Users }] : []),
-    ...(user.role === 'student' ? [{ id: AppTab.TEACHERS, label: 'Teachers', icon: ShieldCheck }] : []),
+    ...(user.role === 'student' ? [{ id: AppTab.TEACHERS, label: 'Teachers', icon: Users }] : []),
   ];
 
   const handleTabChange = (id: AppTab) => {
@@ -107,9 +108,9 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
       {/* Header: Mobil için daha kompakt */}
       <header className="sticky top-0 z-[60] glass-panel border-b border-slate-200/50 dark:border-slate-800/50 h-16 md:h-20 px-4">
         <div className="max-w-7xl mx-auto h-full flex items-center justify-between gap-4">
-          <div className="flex items-center space-x-2 md:space-x-3 cursor-pointer group shrink-0" onClick={() => onTabChange(AppTab.DASHBOARD)}>
-            <div className="bg-brand-600 w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center shadow-lg shadow-brand-200 dark:shadow-none group-hover:scale-105 transition-transform duration-300">
-              <Cat className="w-4 h-4 md:w-6 md:h-6 text-white" />
+          <div className="flex items-center space-x-2 md:space-x-4 cursor-pointer group shrink-0" onClick={() => onTabChange(AppTab.DASHBOARD)}>
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-white dark:bg-slate-900 rounded-2xl shadow-xl shadow-brand-500/10 flex items-center justify-center border-2 border-brand-500/10 transition-transform duration-300 group-hover:scale-105">
+              <Logo size={32} />
             </div>
             <div>
               <h1 className="text-base md:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">

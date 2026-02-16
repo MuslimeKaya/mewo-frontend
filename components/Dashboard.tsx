@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Trophy,
@@ -163,6 +164,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
   };
 
   const fetchTeacherWords = async () => {
+    if (user.role !== 'student') return;
     setLoadingTeacherWords(true);
     try {
       const words = await wordsService.getTeacherWords();
@@ -543,80 +545,81 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                                     </div>
                                   )}
                                 </div>
-                              </div>
 
-                              {viewingFile && (
-                                <div className="w-full animate-in fade-in zoom-in duration-500">
-                                  <div className="bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl relative border-4 border-slate-800">
-                                    <div className="absolute top-6 right-6 z-20">
-                                      <button
-                                        onClick={() => setViewingFile(null)}
-                                        className="bg-black/60 hover:bg-rose-600 text-white p-3 rounded-2xl backdrop-blur-xl transition-all active:scale-95 border border-white/10"
-                                      >
-                                        <X className="w-6 h-6" />
-                                      </button>
-                                    </div>
-                                    <div className="flex justify-center bg-black/20">
-                                      {(() => {
-                                        const url = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001'}${viewingFile.url}`;
-                                        const ext = viewingFile.name.toLowerCase().split('.').pop();
-                                        if (['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(ext)) {
-                                          return (
-                                            <video controls autoPlay className="max-h-[600px] w-full object-contain">
-                                              <source src={url} type={`video/${ext === 'mov' ? 'mp4' : ext}`} />
-                                              Tarayıcınız bu videoyu oynatamıyor.
-                                            </video>
-                                          );
-                                        }
-                                        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
-                                          return (
-                                            <img src={url} alt="Ödev detay" className="max-h-[700px] w-full object-contain shadow-2xl" />
-                                          );
-                                        }
-                                        if (ext === 'pdf') {
-                                          return (
-                                            <iframe src={url} className="w-full h-[700px] bg-white border-none" title="PDF Önizleme" />
-                                          );
-                                        }
-                                        if (['mp3', 'wav', 'ogg'].includes(ext)) {
-                                          return (
-                                            <div className="p-20 w-full flex flex-col items-center justify-center space-y-6 bg-gradient-to-b from-slate-800 to-slate-900">
-                                              <div className="w-20 h-20 bg-brand-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-brand-500/20 animate-bounce">
-                                                <Sparkles className="w-10 h-10 text-white" />
+                                {viewingFile && (
+                                  <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700 w-full animate-in fade-in zoom-in duration-500">
+                                    <div className="bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl relative border-4 border-slate-800">
+                                      <div className="absolute top-6 right-6 z-20">
+                                        <button
+                                          onClick={() => setViewingFile(null)}
+                                          className="bg-black/60 hover:bg-rose-600 text-white p-3 rounded-2xl backdrop-blur-xl transition-all active:scale-95 border border-white/10"
+                                        >
+                                          <X className="w-6 h-6" />
+                                        </button>
+                                      </div>
+                                      <div className="flex justify-center bg-black/20">
+                                        {(() => {
+                                          const url = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001'}${viewingFile.url}`;
+                                          const ext = viewingFile.name.toLowerCase().split('.').pop();
+                                          if (['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(ext)) {
+                                            return (
+                                              <video controls autoPlay className="max-h-[600px] w-full object-contain">
+                                                <source src={url} type={`video/${ext === 'mov' ? 'mp4' : ext}`} />
+                                                Tarayıcınız bu videoyu oynatamıyor.
+                                              </video>
+                                            );
+                                          }
+                                          if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                                            return (
+                                              <img src={url} alt="Ödev detay" className="max-h-[700px] w-full object-contain shadow-2xl" />
+                                            );
+                                          }
+                                          if (ext === 'pdf') {
+                                            return (
+                                              <iframe src={url} className="w-full h-[700px] bg-white border-none" title="PDF Önizleme" />
+                                            );
+                                          }
+                                          if (['mp3', 'wav', 'ogg'].includes(ext)) {
+                                            return (
+                                              <div className="p-20 w-full flex flex-col items-center justify-center space-y-6 bg-gradient-to-b from-slate-800 to-slate-900">
+                                                <div className="w-20 h-20 bg-brand-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-brand-500/20 animate-bounce">
+                                                  <Sparkles className="w-10 h-10 text-white" />
+                                                </div>
+                                                <audio controls autoPlay className="w-full max-w-md accent-brand-500">
+                                                  <source src={url} />
+                                                </audio>
                                               </div>
-                                              <audio controls autoPlay className="w-full max-w-md accent-brand-500">
-                                                <source src={url} />
-                                              </audio>
+                                            )
+                                          }
+                                          return (
+                                            <div className="p-20 text-center text-slate-400">
+                                              <FileText className="w-16 h-16 mx-auto mb-6 opacity-20" />
+                                              <p className="text-lg font-black uppercase tracking-widest">Önizleme Desteklenmiyor</p>
+                                              <a href={url} target="_blank" rel="noreferrer" className="mt-4 px-6 py-3 bg-brand-600 text-white rounded-xl font-black uppercase tracking-widest inline-block hover:bg-brand-500 transition-colors">Dosyayı İndir</a>
                                             </div>
-                                          )
-                                        }
-                                        return (
-                                          <div className="p-20 text-center text-slate-400">
-                                            <FileText className="w-16 h-16 mx-auto mb-6 opacity-20" />
-                                            <p className="text-lg font-black uppercase tracking-widest">Önizleme Desteklenmiyor</p>
-                                            <a href={url} target="_blank" rel="noreferrer" className="mt-4 px-6 py-3 bg-brand-600 text-white rounded-xl font-black uppercase tracking-widest inline-block hover:bg-brand-500 transition-colors">Dosyayı İndir</a>
-                                          </div>
-                                        );
-                                      })()}
-                                    </div>
-                                    <div className="p-5 bg-slate-800/80 backdrop-blur-md text-white flex items-center justify-between border-t border-white/5">
-                                      <div className="flex items-center space-x-3">
-                                        <div className="bg-brand-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em]">Önizleme</div>
-                                        <span className="text-sm font-bold opacity-80">{viewingFile.name}</span>
+                                          );
+                                        })()}
+                                      </div>
+                                      <div className="p-5 bg-slate-800/80 backdrop-blur-md text-white flex items-center justify-between border-t border-white/5">
+                                        <div className="flex items-center space-x-3">
+                                          <div className="bg-brand-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em]">Önizleme</div>
+                                          <span className="text-sm font-bold opacity-80">{viewingFile.name}</span>
+                                        </div>
                                       </div>
                                     </div>
                                   </div>
-                                </div>
-                              )}
-                              <div className="space-y-4">
-                                <div className="flex items-center space-x-3 ml-2">
-                                  <div className="w-1.5 h-6 bg-brand-500 rounded-full" />
-                                  <h5 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">Ödev Kelimeleri ({selectedAssignment.words?.length || 0})</h5>
-                                </div>
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
-                                  {selectedAssignment.words?.map((word: any, id: number) => (
-                                    <WordCard key={id} word={word} isLearned={learnedWordIds.has(word.id)} onToggle={() => handleToggleLearned(word.id)} />
-                                  ))}
+                                )}
+
+                                <div className="space-y-4">
+                                  <div className="flex items-center space-x-3 ml-2">
+                                    <div className="w-1.5 h-6 bg-brand-500 rounded-full" />
+                                    <h5 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">Ödev Kelimeleri ({selectedAssignment.words?.length || 0})</h5>
+                                  </div>
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
+                                    {selectedAssignment.words?.map((word: any, id: number) => (
+                                      <WordCard key={id} word={word} isLearned={learnedWordIds.has(word.id)} onToggle={() => handleToggleLearned(word.id)} />
+                                    ))}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -654,7 +657,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                         </div>
                         <div className="flex-1 flex items-center justify-center">
                           <h3 className="[writing-mode:vertical-lr] rotate-180 text-sm font-black text-slate-500 dark:text-slate-300 group-hover:text-brand-600 transition-all duration-500 uppercase tracking-[0.3em] whitespace-nowrap">
-                            Ödev Geçmişi
+                            Atama Geçmişi
                           </h3>
                         </div>
                         <div className="mt-auto p-3 bg-brand-50 dark:bg-brand-900/20 rounded-2xl border border-brand-100/50 group-hover:bg-brand-500 group-hover:text-white transition-all duration-500">
@@ -662,20 +665,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
                         </div>
                       </div>
                     ) : (
-                      <div className="p-6 h-full flex flex-col animate-in fade-in duration-700">
-                        <div className="flex items-center space-x-3 mb-6 px-2 shrink-0">
-                          <div className="bg-brand-100 dark:bg-brand-900/30 p-2 rounded-xl">
-                            <HistoryIcon className="w-5 h-5 text-brand-600" />
-                          </div>
-                          <div>
-                            <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">Ödev Geçmişi</h3>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Daha önce gönderilenler</p>
+                      <div className="h-full flex flex-col animate-in fade-in duration-700">
+                        <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900/50">
+                          <div className="flex items-center space-x-3">
+                            <div className="bg-brand-500 p-2.5 rounded-2xl shadow-lg shadow-brand-500/20 text-white">
+                              <HistoryIcon className="w-5 h-5" />
+                            </div>
+                            <div>
+                              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Atama Geçmişi</h3>
+                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Geçmişte sana atanan hedef ve kelimeler</p>
+                            </div>
                           </div>
                         </div>
+
                         <AssignmentHistory
                           assignments={assignments}
                           userId={user.id}
-                          onDelete={fetchAssignments}
                           onSelect={(a) => {
                             setSelectedAssignment(a);
                             setActiveCard('study');
@@ -758,6 +763,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
           </div>
         </div>
       )}
+
       {wordToQuiz && (
         <WordQuizModal wordId={wordToQuiz} onClose={(success) => onQuizComplete(success, wordToQuiz)} />
       )}

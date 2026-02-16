@@ -50,7 +50,6 @@ export const RoadmapView: React.FC = () => {
       { id: '3', level: 'B1' as const, title: 'B1: Intermediate', category: 'Speaking', description: 'Standart konular, iş, okul ve seyahat durumlarını yönetme.' },
       { id: '4', level: 'B2' as const, title: 'B2: Upper Intermediate', category: 'Conversation', description: 'Teknik tartışmalar, soyut konular ve akıcı etkileşimler.' },
       { id: '5', level: 'C1' as const, title: 'C1: Advanced', category: 'Business', description: 'İnce anlamlar, organizasyonel yapılar ve sosyal esneklik.' },
-      { id: '6', level: 'C2' as const, title: 'C2: Mastery', category: 'Fluency', description: 'Neredeyse ana dil akıcılığı, karmaşık akıl yürütme ve edebi nüanslar.' },
     ];
 
     let previousComplete = true; // İlk seviye açık başlasın

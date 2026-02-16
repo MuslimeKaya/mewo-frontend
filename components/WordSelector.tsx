@@ -19,7 +19,7 @@ export const WordSelector: React.FC<WordSelectorProps> = ({ onWordAdded, refresh
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [successNotification, setSuccessNotification] = useState<string | null>(null);
 
-    const levels = ['All', 'A1', 'A2', 'B1', 'B2', 'C1', 'C2', 'N/A'];
+    const levels = ['All', 'A1', 'A2', 'B1', 'B2', 'C1', 'N/A'];
     const ITEMS_PER_PAGE = 25; // Reduced to fit on page without browsing
 
     // Reset page when search or level changes
