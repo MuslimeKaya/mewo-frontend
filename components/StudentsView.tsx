@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Search, Mail, Trophy, Clock, ArrowUpRight, TrendingUp, Zap, GraduationCap, Filter, ShieldCheck, X, CheckSquare, Target, BookOpen } from 'lucide-react';
 import { authService, API_URL } from '../services/auth';
-import { Word } from '../services/words';
+import { wordsService, Word } from '../services/words';
 
 export const StudentsView: React.FC = () => {
     const [students, setStudents] = useState<any[]>([]);
@@ -18,6 +18,7 @@ export const StudentsView: React.FC = () => {
     const [studentProgress, setStudentProgress] = useState<any[]>([]);
     const [fetchingProgress, setFetchingProgress] = useState(false);
     const itemsPerPage = 10;
+
 
     useEffect(() => {
         if (activeTab === 'roster') {
@@ -90,10 +91,11 @@ export const StudentsView: React.FC = () => {
         }
     };
 
+
     return (
-        <div className="max-w-[1600px] mx-auto space-y-6 pb-40 animate-in fade-in duration-500 font-sans">
+        <div className="max-w-[1600px] mx-auto space-y-3 animate-in fade-in duration-500 font-sans">
             {/* Minimal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
                 <div className="flex items-center space-x-4">
                     <h2 className="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Ders Yönetimi</h2>
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
@@ -133,6 +135,7 @@ export const StudentsView: React.FC = () => {
                     />
                 </div>
 
+
                 {activeTab === 'roster' && (
                     <div className="flex items-center space-x-1 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-lg">
                         {(['all', 'active', 'top'] as const).map((f) => (
@@ -148,6 +151,7 @@ export const StudentsView: React.FC = () => {
                 )}
             </div>
 
+
             {error ? (
                 <div className="py-12 flex justify-center">
                     <div className="bg-rose-50 dark:bg-rose-900/10 text-rose-600 px-6 py-4 rounded-xl flex flex-col items-center gap-2 max-w-sm text-center">
@@ -162,76 +166,69 @@ export const StudentsView: React.FC = () => {
                 </div>
             ) : activeTab === 'roster' ? (
                 loading ? (
-                    <div className="space-y-2">
-                        {[1, 2, 3, 4, 5].map(i => (
-                            <div key={i} className="h-14 bg-white dark:bg-slate-900 rounded-xl animate-pulse border border-slate-50 dark:border-slate-800" />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 12].map(i => (
+                            <div key={i} className="h-[6vh] bg-white dark:bg-slate-900 rounded-2xl animate-pulse border border-slate-50 dark:border-slate-800" />
                         ))}
                     </div>
                 ) : (
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 overflow-hidden shadow-sm">
-                        <div className="divide-y divide-slate-50 dark:divide-slate-800">
-                            {filteredStudents.map((student) => (
-                                <div
-                                    key={student.id}
-                                    onClick={async () => {
-                                        setSelectedStudent(student);
-                                        setFetchingProgress(true);
-                                        try {
-                                            const progress = await authService.getStudentProgressForTeacher(student.id);
-                                            setStudentProgress(progress);
-                                        } catch (e) {
-                                            console.error('Progress error:', e);
-                                        } finally {
-                                            setFetchingProgress(false);
-                                        }
-                                    }}
-                                    className="flex items-center justify-between p-3 px-5 hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors cursor-pointer group"
-                                >
-                                    <div className="flex items-center space-x-4 min-w-0">
-                                        <div className="w-9 h-9 rounded-full overflow-hidden flex items-center justify-center bg-slate-100 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shrink-0 relative">
-                                            {student.avatar ? (
-                                                <img
-                                                    src={student.avatar.startsWith('http') ? student.avatar : `${API_URL.replace('/api', '')}${student.avatar}`}
-                                                    className="w-full h-full object-cover"
-                                                    alt=""
-                                                />
-                                            ) : (
-                                                <span className="text-[11px] font-black text-slate-400">{student.firstName?.[0]}{student.lastName?.[0]}</span>
-                                            )}
-                                            {student.lastActiveAt && (
-                                                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
-                                            )}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate group-hover:text-brand-600 transition-colors">
-                                                {student.firstName} {student.lastName}
-                                            </h3>
-                                            <p className="text-[10px] text-slate-400 font-medium truncate">{student.email}</p>
-                                        </div>
-                                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                        {filteredStudents.map((student) => (
+                            <div
+                                key={student.id}
+                                onClick={async () => {
+                                    setSelectedStudent(student);
+                                    setFetchingProgress(true);
+                                    try {
+                                        const progress = await authService.getStudentProgressForTeacher(student.id);
+                                        setStudentProgress(progress);
+                                    } catch (e) {
+                                        console.error('Progress error:', e);
+                                    } finally {
+                                        setFetchingProgress(false);
+                                    }
+                                }}
+                                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 p-2 px-3 hover:border-brand-500/50 transition-all cursor-pointer group shadow-sm hover:shadow-lg hover:-translate-y-0.5 flex items-center gap-3 relative overflow-hidden h-[6vh]"
+                            >
+                                <div className="w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 shrink-0 relative">
+                                    {student.avatar ? (
+                                        <img
+                                            src={student.avatar.startsWith('http') ? student.avatar : `${API_URL.replace('/api', '')}${student.avatar}`}
+                                            className="w-full h-full object-cover"
+                                            alt=""
+                                        />
+                                    ) : (
+                                        <span className="text-[10px] font-black text-brand-600/30 uppercase">{student.firstName?.[0]}</span>
+                                    )}
+                                    {student.lastActiveAt && (
+                                        <span className="absolute bottom-0.5 right-0.5 w-2 h-2 bg-emerald-500 border border-white dark:border-slate-900 rounded-full" />
+                                    )}
+                                </div>
 
-                                    <div className="flex items-center space-x-6 shrink-0">
-                                        <div className="text-right hidden sm:block">
-                                            <p className="text-[10px] font-bold text-slate-900 dark:text-white leading-none">{student.xp || 0} XP</p>
-                                            <div className="flex items-center justify-end gap-1 mt-0.5">
-                                                <span className="w-1.5 h-1.5 rounded-full bg-brand-500" />
-                                                <p className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Level {student.level || 1}</p>
-                                            </div>
-                                        </div>
-                                        <ArrowUpRight className="w-4 h-4 text-slate-300 group-hover:text-brand-500 transition-all group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                                <div className="min-w-0 flex-1">
+                                    <h3 className="text-[11px] font-black text-slate-900 dark:text-white truncate">
+                                        {student.firstName} {student.lastName}
+                                    </h3>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[8px] font-black text-brand-600">Lv.{student.level || 1}</span>
+                                        <span className="text-[8px] font-bold text-slate-400 tabular-nums">{student.xp || 0} XP</span>
                                     </div>
                                 </div>
-                            ))}
 
-                            {filteredStudents.length === 0 && (
-                                <div className="py-16 text-center opacity-60">
-                                    <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
-                                        <Users className="w-6 h-6" />
-                                    </div>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Öğrenci bulunamadı</p>
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <ArrowUpRight className="w-3 h-3 text-brand-500" />
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        ))}
+
+                        {filteredStudents.length === 0 && (
+                            <div className="col-span-full py-16 text-center opacity-60">
+                                <div className="w-12 h-12 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-3 text-slate-300">
+                                    <Users className="w-6 h-6" />
+                                </div>
+                                <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Öğrenci bulunamadı</p>
+                            </div>
+                        )}
                     </div>
                 )
             ) : (
@@ -276,28 +273,31 @@ export const StudentsView: React.FC = () => {
                 </div>
             )}
 
-            {/* Pagination */}
+            {/* Compact Flat Pagination - Zero gap to footer */}
             {activeTab === 'roster' && !error && (
-                <div className="flex items-center justify-center p-6 mt-4 border-t border-slate-100 dark:border-slate-800 bg-white/30 dark:bg-slate-900/30 backdrop-blur-sm rounded-3xl">
-                    <div className="max-w-[1600px] w-full flex items-center justify-between">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider hidden sm:block">
-                            Sayfa {currentPage} / {Math.ceil(totalCount / itemsPerPage) || 1}
-                        </span>
-                        <div className="flex items-center space-x-4 mx-auto sm:mx-0">
+                <div className="sticky bottom-0 z-50 flex items-center justify-center py-2 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+                    <div className="max-w-[1600px] w-full flex items-center justify-between px-6">
+                        <div className="hidden sm:flex items-center gap-3">
+                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">SAYFA</span>
+                            <span className="text-[11px] font-black text-slate-900 dark:text-white tabular-nums">
+                                {currentPage} / {Math.ceil(totalCount / itemsPerPage) || 1}
+                            </span>
+                        </div>
+                        <div className="flex items-center space-x-1 mx-auto sm:mx-0">
                             <button
                                 onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                                 disabled={currentPage === 1 || loading}
-                                className="text-[10px] font-black uppercase tracking-widest disabled:opacity-20 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                                className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest disabled:opacity-20 text-slate-500 hover:text-brand-600 bg-slate-50 dark:bg-slate-800/50 rounded-lg transition-all"
                             >
                                 Geri
                             </button>
-                            <span className="text-[10px] font-black text-brand-600 tabular-nums bg-brand-50 dark:bg-brand-900/20 px-3 py-1 rounded-lg">
+                            <div className="px-3 py-1.5 bg-brand-600 text-white rounded-lg font-black text-[11px] shadow-md shadow-brand-500/20">
                                 {currentPage}
-                            </span>
+                            </div>
                             <button
                                 onClick={() => setCurrentPage(p => p + 1)}
                                 disabled={currentPage * itemsPerPage >= totalCount || loading}
-                                className="text-[10px] font-black uppercase tracking-widest disabled:opacity-20 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white transition-colors"
+                                className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest disabled:opacity-20 text-slate-500 hover:text-brand-600 bg-slate-50 dark:bg-slate-800/50 rounded-lg transition-all"
                             >
                                 İleri
                             </button>

@@ -88,10 +88,10 @@ export const wordsService = {
     },
 
     async unselectWord(wordId: string): Promise<any> {
-        const response = await this.authFetch(`${API_URL}/words/teacher/select/${wordId}`, {
+        await this.authFetch(`${API_URL}/words/teacher/select/${wordId}`, {
             method: 'DELETE'
         });
-        return response.json();
+        return { success: true };
     },
 
     async getMySelections(): Promise<Word[]> {
@@ -133,10 +133,10 @@ export const wordsService = {
     },
 
     async deleteAssignment(assignmentId: string): Promise<any> {
-        const response = await this.authFetch(`${API_URL}/words/teacher/assignments/${assignmentId}`, {
+        await this.authFetch(`${API_URL}/words/teacher/assignments/${assignmentId}`, {
             method: 'DELETE'
         });
-        return response.json();
+        return { success: true };
     },
 
     async getStudentAssignmentHistory(): Promise<any[]> {

@@ -50,9 +50,12 @@ export const bulletinsService = {
             }
         });
         if (!response.ok) {
+            if (response.status === 401) {
+                // Token expired or invalid, return empty silently
+                return [];
+            }
             const errorText = await response.text();
             console.error('getForTeacher error:', response.status, errorText);
-            if (response.status === 401) return [];
             throw new Error(`Duyurular yüklenemedi: ${response.status}`);
         }
         return response.json();
@@ -68,9 +71,12 @@ export const bulletinsService = {
             }
         });
         if (!response.ok) {
+            if (response.status === 401) {
+                // Token expired or invalid, return empty silently
+                return [];
+            }
             const errorText = await response.text();
             console.error('getForStudent error:', response.status, errorText);
-            if (response.status === 401) return [];
             throw new Error(`Duyurular yüklenemedi: ${response.status}`);
         }
         return response.json();

@@ -227,25 +227,25 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
         </>
       )}
 
-      <main className="flex-1 w-full max-w-7xl mx-auto pb-32 md:pb-10 overflow-x-hidden flex flex-col">
+      <main className="flex-1 w-full max-w-7xl mx-auto overflow-x-hidden flex flex-col">
         <div className="page-transition flex-1">
           {children}
         </div>
 
         {/* Minimalist App Footer */}
-        <footer className="px-6 py-8 mt-auto border-t border-slate-100 dark:border-slate-800/50 flex flex-col md:flex-row items-center justify-between gap-4 opacity-60 hover:opacity-100 transition-opacity">
-          <div className="flex items-center space-x-3">
-            <span className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tighter">Mewo Language Lab</span>
-            <div className="w-[1px] h-3 bg-slate-200 dark:bg-slate-700"></div>
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">© 2026</p>
+        <footer className="px-6 py-8 mt-auto border-t border-slate-100 dark:border-slate-800/50 flex flex-col md:flex-row items-center justify-between gap-6 opacity-80 hover:opacity-100 transition-opacity">
+          <div className="flex items-center space-x-4">
+            <span className="text-[11px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">Mewo Language Lab</span>
+            <div className="w-[1px] h-4 bg-slate-200 dark:bg-slate-700"></div>
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">© 2026</p>
           </div>
 
-          <div className="flex items-center space-x-6">
-            <button onClick={() => setShowPolicy({ open: true, type: 'support' })} className="text-[9px] font-black text-slate-400 hover:text-brand-600 uppercase tracking-widest transition-colors">Destek</button>
-            <button onClick={() => setShowPolicy({ open: true, type: 'privacy' })} className="text-[9px] font-black text-slate-400 hover:text-brand-600 uppercase tracking-widest transition-colors">Gizlilik</button>
-            <div className="w-[1px] h-3 bg-slate-100 dark:bg-slate-800"></div>
-            <p className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-tighter italic">
-              Empowering Teachers & Students | Happy Hacking Space
+          <div className="flex items-center space-x-8">
+            <button onClick={() => setShowPolicy({ open: true, type: 'support' })} className="text-[10px] font-black text-slate-400 hover:text-brand-600 uppercase tracking-[0.2em] transition-colors">Destek</button>
+            <button onClick={() => setShowPolicy({ open: true, type: 'privacy' })} className="text-[10px] font-black text-slate-400 hover:text-brand-600 uppercase tracking-[0.2em] transition-colors">Gizlilik</button>
+            <div className="w-[1px] h-4 bg-slate-100 dark:bg-slate-800"></div>
+            <p className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-tight italic">
+              Empowering Teachers & Students | <span className="text-brand-600 dark:text-brand-400 font-black not-italic ml-1">HAPPY HACKING SPACE</span>
             </p>
           </div>
         </footer>

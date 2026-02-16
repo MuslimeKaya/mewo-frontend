@@ -45,6 +45,7 @@ import { WordQuizModal } from './WordQuizModal';
 interface DashboardProps {
   onNavigate: (tab: AppTab) => void;
   user: User;
+  onRefreshUser?: (user: User) => void;
 }
 
 const BadgeItem = ({ title, icon, color, bg, progress }: any) => (
@@ -121,7 +122,7 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
   </div>
 );
 
-export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefreshUser }) => {
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [teacherWords, setTeacherWords] = useState<WordType[]>([]);
   const [recommendedWords, setRecommendedWords] = useState<WordType[]>([]);
@@ -147,6 +148,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
   const triggerRefresh = () => {
     setRefreshTrigger(prev => prev + 1);
   };
+
+  useEffect(() => {
+    // Polling for teacher approval if student is not yet approved
+    if (user.role !== 'student' || !onRefreshUser) return;
+
+    const isApproved = user.studentEnrollments?.some(e => e.status === 'approved');
+    if (isApproved) return;
+
+    const interval = setInterval(async () => {
+      try {
+        const token = authService.getToken();
+        if (!token) return;
+        const freshUser = await authService.getMe(token);
+        const nowApproved = freshUser.studentEnrollments?.some(e => e.status === 'approved');
+
+        if (nowApproved) {
+          // If status changed to approved, update the global user state
+          const fullUser = { ...freshUser, access_token: token };
+          localStorage.setItem('mewo_user', JSON.stringify(fullUser));
+          onRefreshUser(fullUser);
+          triggerRefresh();
+        }
+      } catch (e) {
+        console.error('[Dashboard] Status check failed:', e);
+      }
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [user, onRefreshUser]);
 
   useEffect(() => {
     if (user.role === 'teacher') {
@@ -255,9 +285,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user }) => {
   };
 
   return (
-    <div className="px-4 py-4 md:px-6 md:py-6 space-y-6 md:space-y-8 animate-in fade-in duration-700">
+    <div className="px-4 py-2 md:px-6 md:py-3 space-y-3 md:space-y-4 animate-in fade-in duration-700">
       {/* Minimalist Greeting Section */}
-      <div className="mb-2">
+      <div className="mb-0">
         <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
           Hoş geldin, <span className="text-brand-600">{user.firstName}</span>
         </h1>

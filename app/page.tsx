@@ -146,7 +146,7 @@ export default function Home() {
     const renderPage = () => {
         switch (activeTab) {
             case AppTab.DASHBOARD:
-                return <Dashboard onNavigate={setActiveTab} user={currentUser} />;
+                return <Dashboard onNavigate={setActiveTab} user={currentUser} onRefreshUser={setCurrentUser} />;
             case AppTab.PATHWAY:
                 return <RoadmapView />;
             case AppTab.AI_TUTOR:
@@ -162,7 +162,7 @@ export default function Home() {
             case AppTab.SETTINGS:
                 return <SettingsView user={currentUser} onUpdateUser={setCurrentUser} onLogout={handleLogout} />;
             default:
-                return <Dashboard onNavigate={setActiveTab} user={currentUser!} />;
+                return <Dashboard onNavigate={setActiveTab} user={currentUser!} onRefreshUser={setCurrentUser} />;
         }
     };
 
