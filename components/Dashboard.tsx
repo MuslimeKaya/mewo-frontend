@@ -619,11 +619,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                       </div>
                                       <div className="flex justify-center bg-black/20">
                                         {(() => {
-                                          const url = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001'}${viewingFile.url}`;
+                                          const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api\/?$/, '') || 'http://localhost:3001';
+                                          const url = `${apiBase}${viewingFile.url}`;
                                           const ext = viewingFile.name.toLowerCase().split('.').pop();
                                           if (['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(ext)) {
                                             return (
-                                              <video controls autoPlay className="max-h-[500px] w-full object-contain">
+                                              <video controls autoPlay crossOrigin="anonymous" className="max-h-[500px] w-full object-contain">
                                                 <source src={url} type={`video/${ext === 'mov' ? 'mp4' : ext}`} />
                                                 Tarayıcınız bu videoyu oynatamıyor.
                                               </video>
@@ -631,7 +632,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                           }
                                           if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'].includes(ext)) {
                                             return (
-                                              <img src={url} alt="Ödev detay" className="max-h-[600px] w-full object-contain shadow-2xl" />
+                                              <img
+                                                src={url}
+                                                alt="Ödev detay"
+                                                crossOrigin="anonymous"
+                                                className="max-h-[600px] w-full object-contain shadow-2xl"
+                                                onError={(e) => {
+                                                  (e.target as HTMLImageElement).src = 'https://placehold.co/600x400?text=Önizleme+Yüklenemedi';
+                                                }}
+                                              />
                                             );
                                           }
                                           if (ext === 'pdf') {
