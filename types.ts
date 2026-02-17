@@ -58,6 +58,7 @@ export interface Word {
   tr: string;
   cefr: string;
   type?: string;
+  pronunciation?: string;
 }
 
 export enum AppTab {

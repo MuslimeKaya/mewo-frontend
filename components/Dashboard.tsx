@@ -29,7 +29,8 @@ import {
   Calendar,
   ChevronLeft,
   X,
-  Volume2
+  Volume2,
+  ChevronRight
 } from 'lucide-react';
 import { AppTab, WeeklyGoal, User } from '../types';
 import { LiveTutor } from './LiveTutor';
@@ -140,6 +141,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
     if (window.location.pathname === '/hub/assignments') return 'history';
     return 'study';
   });
+  const [wordPage, setWordPage] = useState(1);
+  const WORDS_PER_PAGE = 20;
 
   const [activeTeacherCard, setActiveTeacherCard] = useState<'selector' | 'list' | 'history'>(() => {
     if (typeof window === 'undefined') return 'selector';
@@ -160,10 +163,22 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
   };
 
   // Sync Student URL
-  const updateStudentCard = (card: 'study' | 'history') => {
+  const updateStudentCard = (card: 'study' | 'history', assignmentId?: string) => {
     setActiveCard(card);
-    const path = card === 'study' ? '/hub/study' : '/hub/assignments';
-    window.history.pushState({}, '', path);
+    let path = '/hub/study';
+    if (card === 'history') path = '/hub/assignments';
+
+    if (assignmentId) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('id', assignmentId);
+      window.history.pushState({}, '', url.toString());
+    } else {
+      if (card === 'study') {
+        window.history.pushState({}, '', '/hub/study');
+      } else {
+        window.history.pushState({}, '', path);
+      }
+    }
   };
 
   useEffect(() => {
@@ -202,6 +217,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
       );
 
       setAssignments(sortedHistory);
+
+      // Check URL for assignment ID
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const assignmentId = params.get('id');
+        if (assignmentId) {
+          const found = sortedHistory.find((a: any) => a.id === assignmentId);
+          if (found) {
+            setSelectedAssignment(found);
+            if (activeCard !== 'study') setActiveCard('study');
+          }
+        }
+      }
     } catch (err: any) {
       console.error('Ödev geçmişi yüklenemedi:', err);
     }
@@ -285,6 +313,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
     localStorage.setItem(`mewo_read_words_${user.id}`, JSON.stringify(Array.from(next)));
   };
 
+  const handleDownload = async (url: string, fileName: string) => {
+    try {
+      const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001';
+      const fullUrl = `${apiBase}${url}`;
+      const response = await fetch(fullUrl);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fileName || 'mewo-document';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (err) {
+      console.error('İndirme hatası:', err);
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
       {/* Minimalist Greeting Section */}
@@ -296,7 +343,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
 
       {user.role === 'teacher' && (
         <div className="space-y-6">
-          <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-[650px] relative">
+          <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-[550px] relative">
             <div
               onClick={() => activeTeacherCard !== 'selector' && updateTeacherCard('selector')}
               className={`transition-all duration-700 ease-in-out ${activeTeacherCard === 'selector'
@@ -320,7 +367,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                     </div>
                   </div>
                 ) : (
-                  <div className="h-full p-8 animate-in fade-in slide-in-from-left-8 duration-700">
+                  <div className="h-full p-6 animate-in fade-in slide-in-from-left-8 duration-700">
                     <WordSelector onWordAdded={triggerRefresh} refreshTrigger={refreshTrigger} />
                   </div>
                 )}
@@ -350,7 +397,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                     </div>
                   </div>
                 ) : (
-                  <div className="h-full p-8 animate-in fade-in zoom-in duration-700">
+                  <div className="h-full p-6 animate-in fade-in zoom-in duration-700">
                     <TeacherWordList
                       userId={user.id}
                       refreshTrigger={refreshTrigger}
@@ -388,14 +435,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                     </div>
                   </div>
                 ) : (
-                  <div className="h-full p-8 animate-in fade-in slide-in-from-right-8 duration-700 flex flex-col">
-                    <div className="flex items-center space-x-3 mb-6 px-2 shrink-0">
-                      <div className="bg-brand-100 dark:bg-brand-900/30 p-2 rounded-xl">
-                        <HistoryIcon className="w-5 h-5 text-brand-600" />
+                  <div className="h-full p-6 animate-in fade-in slide-in-from-right-8 duration-700 flex flex-col">
+                    <div className="flex items-center space-x-2.5 mb-3 px-1 shrink-0">
+                      <div className="bg-brand-100 dark:bg-brand-900/30 p-1.5 rounded-lg">
+                        <HistoryIcon className="w-4 h-4 text-brand-600" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">Ödev Geçmişi</h3>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Daha önce gönderilenler</p>
+                        <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">Ödev Geçmişi</h3>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Daha önce gönderilenler</p>
                       </div>
                     </div>
                     <AssignmentHistory
@@ -439,7 +486,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
             </div>
           ) : (
             <>
-              <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-[660px] relative">
+              <div className="flex flex-col lg:flex-row gap-6 h-auto lg:h-[550px] relative">
                 <div
                   onClick={() => activeCard !== 'study' && updateStudentCard('study')}
                   className={`transition-all duration-700 ease-in-out ${activeCard === 'study' ? 'lg:flex-[4] w-full' : 'lg:flex-[0.15] w-full lg:w-20 cursor-pointer group'}`}
@@ -460,24 +507,31 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                         </div>
                       </div>
                     ) : (
-                      <div className="p-8 h-full flex flex-col animate-in fade-in duration-700">
-                        <div className="flex items-center justify-between mb-6 pb-2 border-b border-slate-50 dark:border-slate-800/50">
-                          <div className="flex items-center space-x-3">
-                            <div className="bg-brand-600 p-2.5 rounded-xl shadow-lg shadow-brand-500/20">
-                              <Target className="w-5 h-5 text-white" />
+                      <div className="p-6 h-full flex flex-col animate-in fade-in duration-700">
+                        <div className="flex items-center justify-between mb-3 pb-2 border-b border-slate-50 dark:border-slate-800/50">
+                          <div className="flex items-center space-x-2.5">
+                            <div className="bg-brand-600 p-1.5 rounded-lg shadow-lg shadow-brand-500/20">
+                              <Target className="w-4 h-4 text-white" />
                             </div>
                             <div>
-                              <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">
+                              <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">
                                 {selectedAssignment ? 'Ödev Detayı' : 'Çalışma Listesi'}
                               </h3>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">
-                                {selectedAssignment ? selectedAssignment.title : `${teacherWords.length} AKTİF KELİME`}
+                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+                                {selectedAssignment ? 'İNCELEME MODU' : `${teacherWords.length} AKTİF KELİME`}
                               </p>
                             </div>
                           </div>
                           {selectedAssignment && (
                             <button
-                              onClick={() => setSelectedAssignment(null)}
+                              onClick={() => {
+                                setSelectedAssignment(null);
+                                updateStudentCard('study');
+                                // Remove ID from URL
+                                const url = new URL(window.location.href);
+                                url.searchParams.delete('id');
+                                window.history.pushState({}, '', url.toString());
+                              }}
                               className="group/back flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest bg-slate-100 hover:bg-brand-600 dark:bg-slate-800 dark:hover:bg-brand-600 text-slate-500 hover:text-white px-4 py-2.5 rounded-2xl transition-all active:scale-95"
                             >
                               <ChevronLeft className="w-4 h-4 group-hover/back:-translate-x-1 transition-transform" />
@@ -486,70 +540,71 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                           )}
                         </div>
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                        <div className="flex-1 overflow-hidden pr-2 flex flex-col">
                           {selectedAssignment ? (
-                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                              <div className="bg-[#FAFAFA] dark:bg-slate-800/50 rounded-[2rem] p-6 border-2 border-blue-100 dark:border-slate-800 shadow-inner hover:border-emerald-500/30 transition-colors duration-300">
-                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                                  <div className="flex-1 space-y-3">
-                                    <div className="flex items-center space-x-2">
-                                      <div className="bg-brand-100 dark:bg-brand-900/30 p-1.5 rounded-lg">
+                            <div className="flex-1 flex flex-col">
+                              <div className="space-y-3 animate-in fade-in slide-in-from-bottom-4 duration-500 flex-1">
+                                {/* Header & Description */}
+                                <div className="space-y-2">
+                                  <div className="flex items-start justify-between gap-4">
+                                    <div className="space-y-1">
+                                      <div className="flex items-center space-x-2">
                                         <Calendar className="w-3 h-3 text-brand-600" />
+                                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+                                          {new Date(selectedAssignment.createdAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}
+                                        </span>
                                       </div>
-                                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
-                                        {new Date(selectedAssignment.createdAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}
-                                      </span>
+                                      <h4 className="text-sm font-bold text-slate-900 dark:text-white tracking-tight uppercase leading-snug">
+                                        {selectedAssignment.title || 'Başlıksız Ödev'}
+                                      </h4>
                                     </div>
-                                    <h4 className="text-lg font-black text-slate-900 dark:text-white tracking-tight uppercase leading-none">
-                                      {selectedAssignment.title || 'Başlıksız Ödev'}
-                                    </h4>
-                                    {selectedAssignment.description && (
-                                      <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative group/desc">
-                                        <MessageSquare className="absolute -top-2.5 -left-2.5 w-6 h-6 text-brand-100 dark:text-brand-900/40 -rotate-12" />
-                                        <p className="text-xs font-bold text-slate-600 dark:text-slate-400 leading-relaxed italic">
-                                          "{selectedAssignment.description}"
-                                        </p>
-                                      </div>
-                                    )}
                                   </div>
+                                  {selectedAssignment.description && (
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                                      <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400 leading-relaxed">
+                                        {selectedAssignment.description}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
 
-                                  {selectedAssignment.files && selectedAssignment.files.length > 0 && (
-                                    <div className="w-full md:w-64 space-y-2">
-                                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Ekli Materyaller</p>
+                                {/* Files */}
+                                {selectedAssignment.files && selectedAssignment.files.length > 0 && (
+                                  <div className="space-y-2">
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Ekli Materyaller</p>
+                                    <div className="flex flex-wrap gap-2">
                                       {selectedAssignment.files.map((file: any, fIdx: number) => {
-                                        const getFileIcon = (name: string) => {
-                                          const ext = name.toLowerCase().split('.').pop();
-                                          if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext || '')) return <ImageIcon className="w-3 h-3 text-rose-500" />;
-                                          if (['jpg', 'jpeg', 'png', 'gif'].includes(ext || '')) return <ImageIcon className="w-3 h-3" />;
-                                          if (['xlsx', 'xls', 'csv'].includes(ext || '')) return <FileSpreadsheet className="w-3 h-3" />;
-                                          return <FileText className="w-3 h-3" />;
-                                        };
+                                        const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
                                         return (
-                                          <div key={fIdx} className="bg-[#F8F9FA] dark:bg-slate-900 p-2.5 rounded-xl border-2 border-blue-100 dark:border-slate-800 flex items-center justify-between group/file hover:border-emerald-500 transition-all shadow-sm hover:bg-white hover:shadow-md hover:shadow-emerald-500/10">
-                                            <div className="flex items-center space-x-2 min-w-0">
-                                              <div className="bg-brand-50 dark:bg-brand-900/30 p-1.5 rounded-lg text-brand-600">
-                                                {getFileIcon(file.name)}
-                                              </div>
-                                              <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate max-w-[100px]">{file.name}</span>
+                                          <div key={fIdx} className="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden group/file hover:border-brand-500 transition-all">
+                                            <div className="px-2 py-1 bg-brand-500 text-[8px] font-black text-white shrink-0">
+                                              {ext}
                                             </div>
-                                            <div className="flex items-center space-x-1">
-                                              <button
-                                                className="flex items-center space-x-1 px-2.5 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-brand-600 hover:border-brand-200 dark:hover:border-brand-800 transition-all hover:shadow-sm cursor-pointer"
-                                                onClick={(e) => {
-                                                  e.preventDefault();
-                                                  setViewingFile(file);
-                                                }}
-                                              >
-                                                <span>{viewingFile?.url === file.url ? 'AÇIK' : 'AÇ'}</span>
-                                                {viewingFile?.url === file.url ? <Check className="w-2.5 h-2.5 text-emerald-500" /> : <ExternalLink className="w-2.5 h-2.5" />}
-                                              </button>
+                                            <div className="px-2 py-1 flex items-center space-x-2">
+                                              <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate max-w-[120px]">{file.name}</span>
+                                              <div className="flex items-center border-l border-slate-200 dark:border-slate-700 ml-1 pl-1 space-x-0.5">
+                                                <button
+                                                  onClick={() => handleDownload(file.url, file.name)}
+                                                  className="p-1 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-400 hover:text-emerald-600 rounded transition-colors"
+                                                  title="İndir"
+                                                >
+                                                  <Download className="w-3.5 h-3.5" />
+                                                </button>
+                                                <button
+                                                  onClick={() => setViewingFile(file)}
+                                                  className={`p-1 rounded transition-colors ${viewingFile?.url === file.url ? 'bg-brand-50 text-brand-600' : 'hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-400 hover:text-brand-600'}`}
+                                                  title="Görüntüle"
+                                                >
+                                                  <ExternalLink className="w-3.5 h-3.5" />
+                                                </button>
+                                              </div>
                                             </div>
                                           </div>
                                         );
                                       })}
                                     </div>
-                                  )}
-                                </div>
+                                  </div>
+                                )}
 
                                 {viewingFile && (
                                   <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 w-full animate-in fade-in zoom-in duration-500">
@@ -574,7 +629,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                               </video>
                                             );
                                           }
-                                          if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                                          if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif'].includes(ext)) {
                                             return (
                                               <img src={url} alt="Ödev detay" className="max-h-[600px] w-full object-contain shadow-2xl" />
                                             );
@@ -593,9 +648,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                                 <audio controls autoPlay className="w-full max-w-sm accent-brand-500">
                                                   <source src={url} />
                                                 </audio>
+                                                <p className="text-white/50 text-xs font-medium uppercase tracking-widest">{viewingFile.name}</p>
                                               </div>
-                                            )
+                                            );
                                           }
+                                          return (
+                                            <div className="p-20 text-center">
+                                              <div className="w-16 h-16 bg-slate-800 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-slate-700">
+                                                <FileText className="w-8 h-8 text-slate-500" />
+                                              </div>
+                                              <p className="text-slate-400 text-sm font-bold uppercase tracking-tight">Bu dosya formatı için önizleme desteklenmiyor.</p>
+                                              <button
+                                                onClick={() => handleDownload(viewingFile.url, viewingFile.name)}
+                                                className="mt-4 px-6 py-2 bg-brand-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-brand-500 transition-all"
+                                              >
+                                                Dosyayı İndir
+                                              </button>
+                                            </div>
+                                          );
                                           return (
                                             <div className="p-16 text-center text-slate-400">
                                               <FileText className="w-12 h-12 mx-auto mb-4 opacity-20" />
@@ -615,33 +685,79 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                   </div>
                                 )}
 
-                                <div className="space-y-3">
-                                  <div className="flex items-center space-x-2 ml-1">
-                                    <div className="w-1 h-5 bg-brand-500 rounded-full" />
-                                    <h5 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">Ödev Kelimeleri ({selectedAssignment.words?.length || 0})</h5>
+                                <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800 flex-1">
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-1 h-4 bg-brand-500 rounded-full" />
+                                    <h5 className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">Ödev Kelimeleri ({selectedAssignment.words?.length || 0})</h5>
                                   </div>
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
-                                    {selectedAssignment.words?.map((word: any, id: number) => (
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-2">
+                                    {selectedAssignment.words?.slice((wordPage - 1) * WORDS_PER_PAGE, wordPage * WORDS_PER_PAGE).map((word: any, id: number) => (
                                       <WordCard key={id} word={word} isLearned={learnedWordIds.has(word.id)} onToggle={() => handleToggleLearned(word.id)} />
                                     ))}
                                   </div>
                                 </div>
                               </div>
+                              {/* Compact Pagination for Assignment Words */}
+                              {selectedAssignment.words && selectedAssignment.words.length > WORDS_PER_PAGE && (
+                                <div className="flex items-center justify-center space-x-2 mt-auto pt-2">
+                                  <button
+                                    onClick={() => setWordPage(p => Math.max(1, p - 1))}
+                                    disabled={wordPage === 1}
+                                    className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors"
+                                  >
+                                    <ChevronLeft className="w-3 h-3 text-slate-500" />
+                                  </button>
+                                  <span className="text-[10px] font-black tabular-nums">
+                                    <span className="text-orange-500">{wordPage}</span><span className="text-slate-500 dark:text-slate-400"> / {Math.ceil(selectedAssignment.words.length / WORDS_PER_PAGE)}</span>
+                                  </span>
+                                  <button
+                                    onClick={() => setWordPage(p => Math.min(Math.ceil(selectedAssignment.words.length / WORDS_PER_PAGE), p + 1))}
+                                    disabled={wordPage >= Math.ceil(selectedAssignment.words.length / WORDS_PER_PAGE)}
+                                    className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors"
+                                  >
+                                    <ChevronRight className="w-3 h-3 text-slate-500" />
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           ) : (
-                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
-                              {teacherWords.map((word) => (
-                                <WordCard
-                                  key={word.id}
-                                  word={word}
-                                  isLearned={learnedWordIds.has(word.id)}
-                                  isNew={!readWordIds.has(word.id)}
-                                  onToggle={() => {
-                                    handleToggleLearned(word.id);
-                                    markWordAsRead(word.id);
-                                  }}
-                                />
-                              ))}
+                            <div className="h-full flex flex-col">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-2 flex-1 content-start">
+                                {teacherWords.slice((wordPage - 1) * WORDS_PER_PAGE, wordPage * WORDS_PER_PAGE).map((word) => (
+                                  <WordCard
+                                    key={word.id}
+                                    word={word}
+                                    isLearned={learnedWordIds.has(word.id)}
+                                    isNew={!readWordIds.has(word.id)}
+                                    onToggle={() => {
+                                      handleToggleLearned(word.id);
+                                      markWordAsRead(word.id);
+                                    }}
+                                  />
+                                ))}
+                              </div>
+                              {/* Compact Pagination for Teacher Words */}
+                              {teacherWords.length > WORDS_PER_PAGE && (
+                                <div className="flex items-center justify-center space-x-2 mt-auto pt-2">
+                                  <button
+                                    onClick={() => setWordPage(p => Math.max(1, p - 1))}
+                                    disabled={wordPage === 1}
+                                    className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors"
+                                  >
+                                    <ChevronLeft className="w-3 h-3 text-slate-500" />
+                                  </button>
+                                  <span className="text-[9px] font-bold text-slate-400">
+                                    {wordPage} / {Math.ceil(teacherWords.length / WORDS_PER_PAGE)}
+                                  </span>
+                                  <button
+                                    onClick={() => setWordPage(p => Math.min(Math.ceil(teacherWords.length / WORDS_PER_PAGE), p + 1))}
+                                    disabled={wordPage >= Math.ceil(teacherWords.length / WORDS_PER_PAGE)}
+                                    className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors"
+                                  >
+                                    <ChevronRight className="w-3 h-3 text-slate-500" />
+                                  </button>
+                                </div>
+                              )}
                             </div>
                           )}
                         </div>
@@ -671,14 +787,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                       </div>
                     ) : (
                       <div className="h-full flex flex-col animate-in fade-in duration-700">
-                        <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900/50">
-                          <div className="flex items-center space-x-3">
-                            <div className="bg-brand-500 p-2.5 rounded-2xl shadow-lg shadow-brand-500/20 text-white">
-                              <HistoryIcon className="w-5 h-5" />
+                        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900/50">
+                          <div className="flex items-center space-x-2.5">
+                            <div className="bg-brand-500 p-1.5 rounded-lg shadow-lg shadow-brand-500/20 text-white">
+                              <HistoryIcon className="w-4 h-4" />
                             </div>
                             <div>
-                              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Atama Geçmişi</h3>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Geçmişte sana atanan hedef ve kelimeler</p>
+                              <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight">Atama Geçmişi</h3>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Geçmişte sana atananlar</p>
                             </div>
                           </div>
                         </div>
@@ -688,7 +804,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                           userId={user.id}
                           onSelect={(a) => {
                             setSelectedAssignment(a);
-                            updateStudentCard('study');
+                            updateStudentCard('study', a.id);
                           }}
                           showDelete={false}
                         />
@@ -698,41 +814,44 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                 </div>
               </div>
             </>
-          )}
+          )
+          }
 
-          {user.role === 'student' && recommendedWords.length > 0 && (
-            <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
-              <div className="flex items-center justify-between px-2">
-                <div className="flex items-center space-x-3">
-                  <div className="bg-emerald-500 p-2 rounded-xl shadow-lg shadow-emerald-500/20 text-white">
-                    <TrendingUp className="w-4 h-4" />
+          {
+            user.role === 'student' && recommendedWords.length > 0 && (
+              <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
+                <div className="flex items-center justify-between px-2">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-emerald-500 p-2 rounded-xl shadow-lg shadow-emerald-500/20 text-white">
+                      <TrendingUp className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">Sırada Ne Var?</h3>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Yol haritanda ilerlemek için bunları öğren</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-tight leading-none">Sırada Ne Var?</h3>
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Yol haritanda ilerlemek için bunları öğren</p>
-                  </div>
+                  <button
+                    onClick={() => onNavigate(AppTab.PATHWAY)}
+                    className="flex items-center space-x-2 text-[9px] font-black uppercase tracking-widest text-brand-600 hover:text-brand-500 transition-colors"
+                  >
+                    <span>Yol Haritasına Bak</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
                 </div>
-                <button
-                  onClick={() => onNavigate(AppTab.PATHWAY)}
-                  className="flex items-center space-x-2 text-[9px] font-black uppercase tracking-widest text-brand-600 hover:text-brand-500 transition-colors"
-                >
-                  <span>Yol Haritasına Bak</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                  {recommendedWords.map((word) => (
+                    <WordCard
+                      key={word.id}
+                      word={word}
+                      isLearned={learnedWordIds.has(word.id)}
+                      isNew={true}
+                      onToggle={() => handleToggleLearned(word.id)}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-                {recommendedWords.map((word) => (
-                  <WordCard
-                    key={word.id}
-                    word={word}
-                    isLearned={learnedWordIds.has(word.id)}
-                    isNew={true}
-                    onToggle={() => handleToggleLearned(word.id)}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+            )
+          }
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-8 space-y-6">
@@ -766,12 +885,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
               <LiveTutor />
             </div>
           </div>
-        </div>
+        </div >
       )}
 
-      {wordToQuiz && (
-        <WordQuizModal wordId={wordToQuiz} onClose={(success) => onQuizComplete(success, wordToQuiz)} />
-      )}
-    </div>
+      {
+        wordToQuiz && (
+          <WordQuizModal wordId={wordToQuiz} onClose={(success) => onQuizComplete(success, wordToQuiz)} />
+        )
+      }
+    </div >
   );
 };

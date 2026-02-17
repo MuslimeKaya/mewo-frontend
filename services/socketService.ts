@@ -30,8 +30,11 @@ class SocketService {
         this.socket.on('connect_error', (err) => {
             if (err.message === 'jwt expired' || err.message === 'Unauthorized') {
                 console.warn('[Socket] Auth failed:', err.message);
-                // Optionally stop reconnecting if auth is definitely bad
-                // this.socket?.disconnect();
+                this.socket?.disconnect();
+                if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new Event('auth:logout'));
+                    window.location.href = '/';
+                }
             }
         });
 

@@ -10,7 +10,7 @@ interface AssignmentHistoryProps {
     userId?: string;
 }
 
-const ITEMS_PER_PAGE = 5;
+const ITEMS_PER_PAGE = 6;
 
 export const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ assignments, onDelete, onSelect, showDelete, userId }) => {
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -108,7 +108,7 @@ export const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ assignment
 
     return (
         <div className="flex flex-col flex-1 min-h-0 w-full relative">
-            <div className="flex-1 overflow-hidden space-y-2 relative pb-14">
+            <div className="flex-1 overflow-hidden space-y-2 relative pb-10">
                 {paginatedAssignments.length > 0 ? (
                     paginatedAssignments.map((assignment) => {
                         const isActive = activeId === assignment.id;
@@ -132,25 +132,25 @@ export const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ assignment
                                 }}
                                 onClick={() => !isActive && toggleExpand(assignment.id, assignment)}
                             >
-                                <div className={`flex items-center justify-between p-4 shrink-0 ${isActive ? 'border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 sticky top-0 z-10' : ''}`}>
-                                    <div className="flex items-center space-x-4 min-w-0 flex-1">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border transition-colors ${isActive
+                                <div className={`flex items-center justify-between p-2.5 shrink-0 ${isActive ? 'border-b border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 sticky top-0 z-10' : ''}`}>
+                                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border transition-colors ${isActive
                                             ? 'bg-emerald-100 text-emerald-600 border-emerald-200'
                                             : isNew
                                                 ? 'bg-emerald-100 text-emerald-600 border-emerald-200 animate-pulse'
                                                 : 'bg-white dark:bg-slate-700 text-slate-400 border-slate-200 dark:border-slate-600'
                                             }`}>
-                                            {isNew ? <Calendar className="w-5 h-5" /> : <Clock className="w-5 h-5" />}
+                                            {isNew ? <Calendar className="w-4 h-4" /> : <Clock className="w-4 h-4" />}
                                         </div>
 
                                         <div className="min-w-0 flex-1">
                                             <div className="flex items-center justify-between w-full">
-                                                <h4 className={`text-xs font-black truncate pr-4 ${isActive ? 'text-slate-900 dark:text-white text-sm' : 'text-slate-700 dark:text-slate-300'}`}>
+                                                <h4 className={`text-xs font-bold truncate pr-4 ${isActive ? 'text-slate-900 dark:text-white text-sm' : 'text-slate-700 dark:text-slate-300'}`}>
                                                     {assignment.title || 'Başlıksız Ödev'}
                                                 </h4>
-                                                <div className="shrink-0 flex items-center space-x-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
-                                                    <Calendar className="w-3.5 h-3.5 text-brand-500" />
-                                                    <span className="text-[11px] font-black text-slate-700 dark:text-slate-200 tracking-wide">
+                                                <div className="shrink-0 flex items-center space-x-1.5 bg-white dark:bg-slate-800 px-2 py-1 rounded-lg border border-slate-200 dark:border-slate-700 shadow-sm">
+                                                    <Calendar className="w-3 h-3 text-brand-500" />
+                                                    <span className="text-[10px] font-black text-slate-700 dark:text-slate-200 tracking-wide">
                                                         {formatDate(assignment.createdAt)}
                                                     </span>
                                                 </div>
@@ -167,15 +167,13 @@ export const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ assignment
                                     </div>
 
                                     <div className="ml-2 flex items-center">
-                                        {isActive ? (
+                                        {isActive && (
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); setActiveId(null); }}
                                                 className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors"
                                             >
-                                                <ChevronDown className="w-4 h-4 text-slate-400" />
+                                                <ChevronDown className="w-4 h-4 text-orange-400" />
                                             </button>
-                                        ) : (
-                                            <ChevronRight className="w-4 h-4 text-slate-300" />
                                         )}
                                     </div>
                                 </div>
@@ -189,12 +187,27 @@ export const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ assignment
                                                         <Eye className="w-3 h-3 text-brand-500" />
                                                         <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Görüntüleyenler ({assignment.viewers.length})</p>
                                                     </div>
-                                                    <div className="flex flex-wrap gap-2">
-                                                        {assignment.viewers.length > 0 ? assignment.viewers.map((v: any, i: number) => (
-                                                            <span key={i} className="text-[10px] bg-white border border-slate-200 px-2 py-1 rounded-md text-slate-600 font-bold shadow-sm">
-                                                                {v.fullName}
-                                                            </span>
-                                                        )) : (
+                                                    <div className="flex flex-wrap gap-x-4 gap-y-2">
+                                                        {assignment.viewers.length > 0 ? assignment.viewers.map((v: any, i: number) => {
+                                                            const avatarUrl = v.avatar
+                                                                ? `${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001'}/${v.avatar}`
+                                                                : null;
+
+                                                            return (
+                                                                <div key={i} className="flex items-center space-x-2 group">
+                                                                    <div className="shrink-0">
+                                                                        {avatarUrl ? (
+                                                                            <img src={avatarUrl} alt={v.fullName} className="w-6 h-6 rounded-full object-cover ring-2 ring-white dark:ring-slate-700 shadow-sm" />
+                                                                        ) : (
+                                                                            <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-[10px] text-slate-400 font-bold border border-slate-200 dark:border-slate-600">
+                                                                                {v.fullName.charAt(0)}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                    <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300 group-hover:text-brand-500 transition-colors">{v.fullName}</span>
+                                                                </div>
+                                                            );
+                                                        }) : (
                                                             <span className="text-[10px] text-slate-400 italic">Henüz kimse görüntülemedi.</span>
                                                         )}
                                                     </div>
@@ -211,25 +224,31 @@ export const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ assignment
                                             )}
 
                                             {assignment.files?.length > 0 && (
-                                                <div className="space-y-2">
-                                                    {assignment.files.map((file: any, fIdx: number) => (
-                                                        <div key={fIdx} className="flex items-center justify-between p-3 bg-white border border-slate-100 rounded-xl hover:border-emerald-500 hover:shadow-sm transition-all group/file">
-                                                            <div className="flex items-center space-x-3">
-                                                                <div className="bg-emerald-50 p-2 rounded-lg text-emerald-600">
-                                                                    {getFileIcon(file.name)}
+                                                <div className="flex flex-wrap gap-2">
+                                                    {assignment.files.map((file: any, fIdx: number) => {
+                                                        const ext = file.name.split('.').pop()?.toUpperCase() || 'FILE';
+                                                        const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001';
+
+                                                        return (
+                                                            <div key={fIdx} className="flex items-center group/file bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden transition-all hover:border-emerald-500 hover:shadow-sm">
+                                                                <div className="px-2 py-1 bg-emerald-500 text-[8px] font-black text-white shrink-0">
+                                                                    {ext}
                                                                 </div>
-                                                                <span className="text-xs font-bold text-slate-700 truncate max-w-[150px]">{file.name}</span>
+                                                                <div className="px-2 py-1 flex items-center space-x-2">
+                                                                    <span className="text-[10px] font-bold text-slate-600 dark:text-slate-300 truncate max-w-[120px]">{file.name}</span>
+                                                                    <div className="flex items-center border-l border-slate-200 dark:border-slate-700 ml-1 pl-1">
+                                                                        <button
+                                                                            onClick={(e) => { e.stopPropagation(); handleDownload(file.url, file.name); }}
+                                                                            className="p-1 hover:bg-white dark:hover:bg-slate-800 text-slate-400 hover:text-emerald-600 rounded transition-colors"
+                                                                            title="İndir"
+                                                                        >
+                                                                            <Download className="w-3 h-3" />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
                                                             </div>
-                                                            <div className="flex items-center space-x-1">
-                                                                <button onClick={() => handleDownload(file.url, file.name)} className="p-1.5 hover:bg-slate-50 text-slate-400 hover:text-emerald-600 rounded-lg transition-colors">
-                                                                    <Download className="w-4 h-4" />
-                                                                </button>
-                                                                <a href={`${process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001'}${file.url}`} target="_blank" rel="noreferrer" className="p-1.5 hover:bg-slate-50 text-slate-400 hover:text-brand-600 rounded-lg transition-colors">
-                                                                    <ExternalLink className="w-4 h-4" />
-                                                                </a>
-                                                            </div>
-                                                        </div>
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
                                             )}
 
@@ -280,28 +299,26 @@ export const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ assignment
             </div>
 
             {assignments.length > 0 && !activeId && (
-                <div className="absolute bottom-0 inset-x-0 bg-[#FAFAFA] dark:bg-slate-900 border-t-2 border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between z-10 rounded-b-[2rem]">
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                        disabled={currentPage === 1}
-                        className="p-3 bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-sm disabled:opacity-30 hover:bg-slate-50 hover:border-brand-200 transition-all active:scale-95 group"
-                    >
-                        <ChevronLeft className="w-5 h-5 text-slate-900 dark:text-white group-hover:text-brand-600" />
-                    </button>
-
-                    <div className="bg-white dark:bg-slate-800 px-6 py-2 rounded-xl border-2 border-slate-200 dark:border-slate-700 shadow-sm">
-                        <span className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">
-                            {currentPage} / {totalPages}
+                <div className="absolute bottom-1 inset-x-0 flex items-center justify-center space-x-2 z-10 pointer-events-none">
+                    <div className="bg-white/90 dark:bg-slate-800/90 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-sm rounded-full px-2 py-1 flex items-center space-x-2 pointer-events-auto scale-75 origin-bottom">
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1}
+                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full disabled:opacity-30 transition-colors"
+                        >
+                            <ChevronLeft className="w-3 h-3 text-slate-600 dark:text-slate-300" />
+                        </button>
+                        <span className="text-[9px] font-black tabular-nums">
+                            <span className="text-orange-500">{currentPage}</span><span className="text-slate-500 dark:text-slate-400">/{totalPages}</span>
                         </span>
+                        <button
+                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages}
+                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full disabled:opacity-30 transition-colors"
+                        >
+                            <ChevronRight className="w-3 h-3 text-slate-600 dark:text-slate-300" />
+                        </button>
                     </div>
-
-                    <button
-                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                        disabled={currentPage === totalPages}
-                        className="p-3 bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 shadow-sm disabled:opacity-30 hover:bg-slate-50 hover:border-brand-200 transition-all active:scale-95 group"
-                    >
-                        <ChevronRight className="w-5 h-5 text-slate-900 dark:text-white group-hover:text-brand-600" />
-                    </button>
                 </div>
             )}
         </div>

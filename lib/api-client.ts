@@ -75,7 +75,8 @@ class ApiClient {
             return {} as T;
         }
 
-        return response.json();
+        const text = await response.text();
+        return text ? JSON.parse(text) : {} as T;
     }
 
     get<T>(endpoint: string, options?: RequestInit) {

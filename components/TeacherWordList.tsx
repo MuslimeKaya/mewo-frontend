@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Target, Trash2, Loader2, Zap, Edit3, Check, X, Users, CheckSquare, Search, Send, Paperclip, Volume2, ChevronRight, Filter } from 'lucide-react';
+import { Target, Trash2, Loader2, Zap, Edit3, Check, X, Users, CheckSquare, Search, Send, Paperclip, Volume2, ChevronRight, Filter, ChevronLeft } from 'lucide-react';
 import { wordsService, Word } from '../services/words';
 import { authService, API_URL } from '../services/auth';
 
@@ -32,6 +32,8 @@ export const TeacherWordList: React.FC<TeacherWordListProps> = ({
     const [students, setStudents] = useState<any[]>([]);
     const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
     const [studentSearch, setStudentSearch] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const WORDS_PER_PAGE = 18; // 3 rows x 6 columns = 18 items
 
     useEffect(() => {
         fetchMySelections();
@@ -138,8 +140,11 @@ export const TeacherWordList: React.FC<TeacherWordListProps> = ({
         return 'bg-orange-500 text-white border-orange-600 shadow-sm shadow-orange-500/20';
     };
 
+    const totalPages = Math.ceil(mySelections.length / WORDS_PER_PAGE);
+    const paginatedSelections = mySelections.slice((currentPage - 1) * WORDS_PER_PAGE, currentPage * WORDS_PER_PAGE);
+
     return (
-        <div className="h-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-sm flex flex-col overflow-hidden">
+        <div className="h-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-[2.5rem] shadow-sm flex flex-col overflow-hidden relative">
             {/* Header */}
             <div className="px-6 py-4 border-b border-slate-50 dark:border-slate-800/50 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
@@ -157,9 +162,9 @@ export const TeacherWordList: React.FC<TeacherWordListProps> = ({
             </div>
 
             {/* Word Grid - Compact & Professional */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-5 bg-[#FAFAFA]/50 dark:bg-slate-950/20">
-                <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2.5">
-                    {mySelections.map((word) => (
+            <div className="flex-1 overflow-hidden p-5 bg-[#FAFAFA]/50 dark:bg-slate-950/20 relative pb-10">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5 h-full content-start">
+                    {paginatedSelections.map((word) => (
                         <div key={word.id} className="relative group bg-white dark:bg-[#1e293b] border border-slate-200 dark:border-slate-800 rounded-xl p-3 hover:border-orange-500/30 hover:shadow-md dark:hover:shadow-orange-900/5 transition-all duration-300">
                             <div className="flex items-start justify-between mb-2">
                                 <span className={`px-1.5 py-[2px] rounded text-[8px] font-black uppercase tracking-wider ${getLevelColor(word.cefr)}`}>
@@ -192,6 +197,31 @@ export const TeacherWordList: React.FC<TeacherWordListProps> = ({
                         </div>
                     )}
                 </div>
+
+                {/* Compact Floating Pagination */}
+                {totalPages > 1 && (
+                    <div className="absolute bottom-1 inset-x-0 flex items-center justify-center space-x-2 z-20 pointer-events-none pb-0.5">
+                        <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-sm rounded-full px-2 py-1 flex items-center space-x-2 pointer-events-auto scale-75 text-[9px] font-black transition-all hover:scale-80 origin-bottom">
+                            <button
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full disabled:opacity-30 transition-colors"
+                            >
+                                <ChevronLeft className="w-3 h-3 text-slate-600 dark:text-slate-300" />
+                            </button>
+                            <span className="text-slate-500 dark:text-slate-400 tabular-nums">
+                                <span className="text-orange-500">{currentPage}</span> / {totalPages}
+                            </span>
+                            <button
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full disabled:opacity-30 transition-colors"
+                            >
+                                <ChevronRight className="w-3 h-3 text-slate-600 dark:text-slate-300" />
+                            </button>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Footer Control Panel */}

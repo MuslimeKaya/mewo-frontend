@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Check, Loader2, BookOpen, X, Zap, ChevronLeft, ArrowRight, Volume2 } from 'lucide-react';
+import { Search, Plus, Check, Loader2, BookOpen, X, Zap, ChevronLeft, ArrowRight, Volume2, ChevronRight } from 'lucide-react';
 import { wordsService, Word } from '../services/words';
 
 interface WordSelectorProps {
@@ -18,9 +18,10 @@ export const WordSelector: React.FC<WordSelectorProps> = ({ onWordAdded, refresh
     const [loading, setLoading] = useState(false);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [successNotification, setSuccessNotification] = useState<string | null>(null);
+    const [audioPlayer] = useState<HTMLAudioElement | null>(typeof window !== 'undefined' ? new Audio() : null);
 
     const levels = ['All', 'A1', 'A2', 'B1', 'B2', 'C1', 'N/A'];
-    const ITEMS_PER_PAGE = 25; // Reduced to fit on page without browsing
+    const ITEMS_PER_PAGE = 24; // 4 rows x 6 columns = 24 items
 
     // Reset page when search or level changes
     useEffect(() => {
@@ -193,8 +194,8 @@ export const WordSelector: React.FC<WordSelectorProps> = ({ onWordAdded, refresh
             </div>
 
             {/* Word List - No Scroll - Fit Content */}
-            <div className="flex-1 overflow-hidden px-6 py-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 h-full content-start">
+            <div className="flex-1 overflow-hidden px-6 py-4 pb-10">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2.5 h-full content-start">
                     {loading ? (
                         <div className="col-span-full flex flex-col items-center justify-center h-full space-y-4">
                             <Loader2 className="w-8 h-8 text-brand-500 animate-spin" />
@@ -212,23 +213,23 @@ export const WordSelector: React.FC<WordSelectorProps> = ({ onWordAdded, refresh
                                     : 'bg-[#F8F9FA] dark:bg-slate-800 border-blue-100 dark:border-slate-700 shadow-sm hover:bg-white hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-500/10'
                                     }`}>
                                     <div className="flex-1 min-w-0 pr-1.5">
-                                        <div className="flex items-center space-x-1.5 mb-1">
-                                            <div className="px-1.5 py-0.5 bg-slate-200 dark:bg-brand-900/30 rounded border border-slate-300 dark:border-brand-800 flex items-center justify-center shrink-0">
-                                                <span className="text-[9px] font-black text-slate-700 dark:text-brand-400">{word.cefr || '?'}</span>
+                                        <div className="flex items-center space-x-1 mb-1">
+                                            <div className="px-1 py-[1px] bg-slate-200 dark:bg-brand-900/30 rounded-[3px] border border-slate-300 dark:border-brand-800 flex items-center justify-center shrink-0">
+                                                <span className="text-[7px] font-black text-slate-700 dark:text-brand-400">{word.cefr || '?'}</span>
                                             </div>
-                                            {isSent && (
-                                                <span className="text-[7px] font-black bg-slate-100 dark:bg-slate-800 text-slate-500 px-1.5 py-0.5 rounded uppercase tracking-wider">OK</span>
-                                            )}
                                             {word.pronunciation && (
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
-                                                        new Audio(word.pronunciation).play().catch(console.error);
+                                                        if (audioPlayer) {
+                                                            audioPlayer.src = word.pronunciation!;
+                                                            audioPlayer.play().catch(console.error);
+                                                        }
                                                     }}
                                                     className="text-slate-400 hover:text-brand-500 transition-colors p-0.5 hover:bg-slate-100 dark:hover:bg-slate-800 rounded active:scale-95"
                                                     title="Dinle"
                                                 >
-                                                    <Volume2 className="w-3 h-3" />
+                                                    <Volume2 className="w-2.5 h-2.5" />
                                                 </button>
                                             )}
                                         </div>
@@ -238,17 +239,17 @@ export const WordSelector: React.FC<WordSelectorProps> = ({ onWordAdded, refresh
                                     <button
                                         onClick={() => handleSelect(word)}
                                         disabled={actionLoading === word.id || isPassive}
-                                        className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all shrink-0 ml-1 ${isPassive
+                                        className={`w-6 h-6 rounded-md flex items-center justify-center transition-all shrink-0 ml-1 ${isPassive
                                             ? 'bg-slate-50 dark:bg-slate-800 text-slate-300 dark:text-slate-600'
                                             : 'bg-brand-50 dark:bg-brand-900/20 text-brand-600 hover:bg-brand-600 hover:text-white'
                                             }`}
                                     >
                                         {actionLoading === word.id ? (
-                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                            <Loader2 className="w-2.5 h-2.5 animate-spin" />
                                         ) : isPassive ? (
-                                            <Check className="w-3 h-3" />
+                                            <Check className="w-2.5 h-2.5" />
                                         ) : (
-                                            <Plus className="w-4 h-4" />
+                                            <Plus className="w-3 h-3" />
                                         )}
                                     </button>
                                 </div>
@@ -265,42 +266,28 @@ export const WordSelector: React.FC<WordSelectorProps> = ({ onWordAdded, refresh
                 </div>
             </div>
 
-            {/* Zero-Bottom Pagination Footer */}
+            {/* Compact Floating Pagination */}
             {totalPages > 0 && (
-                <div className="flex-none flex items-center justify-between px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 backdrop-blur-sm z-20">
-                    <div className="hidden sm:flex items-center space-x-2">
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Toplam {totalResults}</span>
-                    </div>
-
-                    <div className="flex items-center space-x-3 w-full sm:w-auto justify-between sm:justify-center">
+                <div className="absolute bottom-0 inset-x-0 flex items-center justify-center space-x-2 z-20 pointer-events-none pb-0.5">
+                    <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm border border-slate-200 dark:border-slate-700 shadow-sm rounded-full px-2 py-1 flex items-center space-x-2 pointer-events-auto scale-75 text-[9px] font-black transition-all hover:scale-80 origin-bottom">
                         <button
-                            onClick={() => {
-                                setCurrentPage(p => Math.max(1, p - 1));
-                            }}
+                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                             disabled={currentPage === 1 || loading}
-                            className="flex items-center space-x-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-brand-600 hover:border-brand-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full disabled:opacity-30 transition-colors"
                         >
-                            <ChevronLeft className="w-3 h-3" />
-                            <span>Önceki</span>
+                            <ChevronLeft className="w-3 h-3 text-slate-600 dark:text-slate-300" />
                         </button>
-
-                        <div className="px-4 py-2 bg-transparent text-center min-w-[80px]">
-                            <span className="text-xs font-black text-slate-700 dark:text-slate-300">{currentPage} / {totalPages}</span>
-                        </div>
-
+                        <span className="text-slate-500 dark:text-slate-400 tabular-nums">
+                            <span className="text-orange-500 font-black">{currentPage}</span> / {totalPages}
+                        </span>
                         <button
-                            onClick={() => {
-                                setCurrentPage(p => Math.min(totalPages, p + 1));
-                            }}
+                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages || totalPages === 0 || loading}
-                            className="flex items-center space-x-1 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-brand-600 hover:border-brand-200 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                            className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full disabled:opacity-30 transition-colors"
                         >
-                            <span>Sonraki</span>
-                            <ArrowRight className="w-3 h-3" />
+                            <ChevronRight className="w-3 h-3 text-slate-600 dark:text-slate-300" />
                         </button>
                     </div>
-
-                    <div className="hidden sm:block w-[80px]"></div>
                 </div>
             )}
         </div>
