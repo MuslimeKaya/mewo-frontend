@@ -142,7 +142,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
     return 'study';
   });
   const [wordPage, setWordPage] = useState(1);
-  const WORDS_PER_PAGE = 20;
+  const WORDS_PER_PAGE = 24;
 
   const [activeTeacherCard, setActiveTeacherCard] = useState<'selector' | 'list' | 'history'>(() => {
     if (typeof window === 'undefined') return 'selector';
@@ -699,7 +699,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                     <div className="w-1 h-4 bg-brand-500 rounded-full" />
                                     <h5 className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">Ödev Kelimeleri ({selectedAssignment.words?.length || 0})</h5>
                                   </div>
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-2">
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2">
                                     {selectedAssignment.words?.slice((wordPage - 1) * WORDS_PER_PAGE, wordPage * WORDS_PER_PAGE).map((word: any, id: number) => (
                                       <WordCard key={id} word={word} isLearned={learnedWordIds.has(word.id)} onToggle={() => handleToggleLearned(word.id)} />
                                     ))}
@@ -731,7 +731,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                             </div>
                           ) : (
                             <div className="h-full flex flex-col">
-                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-2 flex-1 content-start">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2 flex-1 content-start">
                                 {teacherWords.slice((wordPage - 1) * WORDS_PER_PAGE, wordPage * WORDS_PER_PAGE).map((word) => (
                                   <WordCard
                                     key={word.id}
@@ -847,7 +847,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-6 gap-4">
                   {recommendedWords.map((word) => (
                     <WordCard
                       key={word.id}
