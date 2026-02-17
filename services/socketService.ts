@@ -7,16 +7,32 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://
 class SocketService {
     private socket: Socket | null = null;
 
-    connect(token: string) {
+    connect(initialToken?: string) {
         if (this.socket?.connected) return;
 
+        // Use functional auth to ensure we always get the latest token from storage on reconnection
         this.socket = io(API_URL, {
-            auth: { token },
+            auth: (cb) => {
+                // Priority: Token passed -> Token in localStorage -> null
+                // Note: initialToken is only useful for first connect if not in storage yet
+                const stored = this.getTokenFromStorage();
+                cb({ token: stored || initialToken });
+            },
             transports: ['websocket'],
+            reconnectionDelay: 1000,
+            reconnectionDelayMax: 5000,
         });
 
         this.socket.on('connect', () => {
             console.log('[Socket] Connected to server');
+        });
+
+        this.socket.on('connect_error', (err) => {
+            if (err.message === 'jwt expired' || err.message === 'Unauthorized') {
+                console.warn('[Socket] Auth failed:', err.message);
+                // Optionally stop reconnecting if auth is definitely bad
+                // this.socket?.disconnect();
+            }
         });
 
         this.socket.on('notification', (data: { title: string; message: string; type: string }) => {
@@ -53,6 +69,18 @@ class SocketService {
 
     getSocket() {
         return this.socket;
+    }
+
+    private getTokenFromStorage(): string | null {
+        if (typeof window === 'undefined') return null;
+        try {
+            const userStr = localStorage.getItem('mewo_user');
+            if (!userStr) return null;
+            const user = JSON.parse(userStr);
+            return user.access_token || user.token || null;
+        } catch (e) {
+            return null;
+        }
     }
 }
 

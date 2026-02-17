@@ -52,6 +52,14 @@ export interface ChatMessage {
   timestamp: Date;
 }
 
+export interface Word {
+  id: string;
+  en: string;
+  tr: string;
+  cefr: string;
+  type?: string;
+}
+
 export enum AppTab {
   DASHBOARD = 'dashboard',
   PATHWAY = 'pathway',

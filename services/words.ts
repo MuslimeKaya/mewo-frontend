@@ -1,65 +1,13 @@
-import { User } from '../types';
+import { apiClient, API_URL as CLIENT_API_URL } from '../lib/api-client';
+import { Word } from '../types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+export const API_URL = CLIENT_API_URL || 'http://localhost:3001/api';
 
-export interface Word {
-    id: string;
-    en: string;
-    tr: string;
-    definition?: string;
-    pos?: string;
-    cefr?: string;
-    example?: string;
-    teachers?: { id: string; firstName: string; lastName: string }[];
-    pronunciation?: string;
-}
+export type { Word };
 
 const searchCache = new Map<string, { items: Word[], total: number }>();
 
 export const wordsService = {
-    async authFetch(url: string, options: RequestInit = {}) {
-        const token = this.getToken();
-        if (!token) {
-            console.warn(`[wordsService] No token found for request to: ${url}`);
-            throw new Error('Oturum anahtarı bulunamadı. Lütfen tekrar giriş yapın.');
-        }
-
-        const headers: any = {
-            ...options.headers,
-            'Authorization': `Bearer ${token}`
-        };
-
-        if (options.body && !(options.body instanceof FormData)) {
-            headers['Content-Type'] = 'application/json';
-        }
-
-        const response = await fetch(url, { ...options, headers });
-
-        if (!response.ok) {
-            let errorDetail = '';
-            try {
-                const data = await response.json();
-                errorDetail = data.message || JSON.stringify(data);
-            } catch (e) {
-                errorDetail = await response.text().catch(() => 'No detail available');
-            }
-
-
-            if (response.status === 401) {
-                if (typeof window !== 'undefined') {
-                    localStorage.removeItem('mewo_user');
-                    window.location.reload();
-                }
-                throw new Error('Oturumunuz sona ermiş. Lütfen tekrar giriş yapın.');
-            }
-            if (response.status === 403) throw new Error('Bu işlem için yetkiniz bulunmuyor.');
-
-            throw new Error(errorDetail || `İşlem başarısız (Hata: ${response.status})`);
-        }
-
-        return response;
-    },
-
     async findAll(search?: string, level?: string, page: number = 1, limit: number = 50): Promise<{ items: Word[], total: number }> {
         const cacheKey = `${search || ''}-${level || 'all'}-${page}-${limit}`;
 
@@ -73,35 +21,25 @@ export const wordsService = {
         params.append('page', page.toString());
         params.append('limit', limit.toString());
 
-        const response = await this.authFetch(`${API_URL}/words?${params.toString()}`);
-        const data = await response.json();
+        const data = await apiClient.get<{ items: Word[], total: number }>(`/words?${params.toString()}`);
         searchCache.set(cacheKey, data);
         return data;
     },
 
     async selectWord(wordId: string): Promise<any> {
-        const response = await this.authFetch(`${API_URL}/words/teacher/select`, {
-            method: 'POST',
-            body: JSON.stringify({ wordId })
-        });
-        return response.json();
+        return apiClient.post('/words/teacher/select', { wordId });
     },
 
     async unselectWord(wordId: string): Promise<any> {
-        await this.authFetch(`${API_URL}/words/teacher/select/${wordId}`, {
-            method: 'DELETE'
-        });
-        return { success: true };
+        return apiClient.delete(`/words/teacher/select/${wordId}`);
     },
 
     async getMySelections(): Promise<Word[]> {
-        const response = await this.authFetch(`${API_URL}/words/teacher/my-selections`);
-        return response.json();
+        return apiClient.get<Word[]>('/words/teacher/my-selections');
     },
 
     async getTeacherWords(): Promise<Word[]> {
-        const response = await this.authFetch(`${API_URL}/words/teacher-words`);
-        return response.json();
+        return apiClient.get<Word[]>('/words/teacher-words');
     },
 
     async sendAssignment(words: Word[], title?: string, description?: string, files?: File[], studentIds?: string[]): Promise<any> {
@@ -120,81 +58,61 @@ export const wordsService = {
             formData.append('studentIds', JSON.stringify(studentIds));
         }
 
-        const response = await this.authFetch(`${API_URL}/words/teacher/assignments`, {
-            method: 'POST',
-            body: formData,
-        });
-        return response.json();
+        return apiClient.post('/words/teacher/assignments', formData);
     },
 
     async getAssignmentHistory(): Promise<any[]> {
-        const response = await this.authFetch(`${API_URL}/words/teacher/assignments/history`);
-        return response.json();
+        return apiClient.get<any[]>('/words/teacher/assignments/history');
     },
 
     async deleteAssignment(assignmentId: string): Promise<any> {
-        await this.authFetch(`${API_URL}/words/teacher/assignments/${assignmentId}`, {
-            method: 'DELETE'
-        });
+        await apiClient.delete(`/words/teacher/assignments/${assignmentId}`);
         return { success: true };
     },
 
     async getStudentAssignmentHistory(): Promise<any[]> {
-        const response = await this.authFetch(`${API_URL}/words/assignments/student`);
-        return response.json();
+        return apiClient.get<any[]>('/words/assignments/student');
     },
 
     async markAsViewed(assignmentId: string): Promise<void> {
         try {
-            await this.authFetch(`${API_URL}/words/assignments/${assignmentId}/view`, {
-                method: 'POST'
-            });
+            // We don't need the response body, just the action
+            await apiClient.post(`/words/assignments/${assignmentId}/view`);
         } catch (e) {
+            // Ignore JSON parse errors for empty 200 OK responses if that's happening
             console.error('Failed to mark assignment as viewed', e);
         }
     },
 
     async getQuiz(wordId: string): Promise<{ wordId: string, question: string, options: { text: string, isCorrect: boolean }[] }> {
-        const response = await this.authFetch(`${API_URL}/words/student/quiz/${wordId}`);
-        return response.json();
+        return apiClient.get(`/words/student/quiz/${wordId}`);
     },
 
     async verifyQuiz(wordId: string, isCorrect: boolean): Promise<any> {
-        const response = await this.authFetch(`${API_URL}/words/student/quiz/verify`, {
-            method: 'POST',
-            body: JSON.stringify({ wordId, isCorrect })
-        });
-        return response.json();
+        return apiClient.post('/words/student/quiz/verify', { wordId, isCorrect });
     },
 
     async getLevelExam(level: string): Promise<any> {
-        const response = await this.authFetch(`${API_URL}/words/student/exam/${level}`);
-        return response.json();
+        return apiClient.get(`/words/student/exam/${level}`);
     },
 
     async submitLevelExam(level: string, answers: { wordId: string, answer: string }[]): Promise<any> {
-        const response = await this.authFetch(`${API_URL}/words/student/exam/${level}/submit`, {
-            method: 'POST',
-            body: JSON.stringify({ answers })
-        });
-        return response.json();
+        return apiClient.post(`/words/student/exam/${level}/submit`, { answers });
     },
 
     async getLearnedWords(): Promise<any[]> {
-        const response = await this.authFetch(`${API_URL}/words/student/learned-words`);
-        return response.json();
+        return apiClient.get<any[]>('/words/student/learned-words');
     },
 
     async getStudentProgress(): Promise<{ level: string, total: number, learned: number, percentage: number }[]> {
-        const response = await this.authFetch(`${API_URL}/words/student/progress`);
-        return response.json();
+        return apiClient.get('/words/student/progress');
     },
 
     async getRecommendedWords(): Promise<Word[]> {
-        const response = await this.authFetch(`${API_URL}/words/student/recommended-words`);
-        return response.json();
+        return apiClient.get<Word[]>('/words/student/recommended-words');
     },
 
+    // Kept for backward compatibility if used directly
     getToken() {
         if (typeof window === 'undefined') return '';
         const userStr = localStorage.getItem('mewo_user');
@@ -212,5 +130,24 @@ export const wordsService = {
 
     clearCache() {
         searchCache.clear();
+    },
+
+    // Adding legacy authFetch for backward compatibility but redirecting to apiClient
+    async authFetch(url: string, options: RequestInit = {}) {
+        // We need to strip the API_URL part if it's there because apiClient expects endpoint relative
+        let endpoint = url;
+        const apiBase = API_URL;
+        if (url.startsWith(apiBase)) {
+            endpoint = url.substring(apiBase.length);
+        }
+
+        // Map fetch options to apiClient methods
+        const method = options.method?.toUpperCase() || 'GET';
+        if (method === 'GET') return apiClient.get(endpoint, options);
+        if (method === 'POST') return apiClient.post(endpoint, options.body, options);
+        if (method === 'PUT') return apiClient.put(endpoint, options.body, options);
+        if (method === 'DELETE') return apiClient.delete(endpoint, options);
+
+        return apiClient.get(endpoint, options);
     }
 };

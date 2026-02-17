@@ -1,6 +1,5 @@
-import { authService } from './auth';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+import { apiClient } from '../lib/api-client';
 
 export interface Bulletin {
     id: string;
@@ -27,82 +26,22 @@ export interface Bulletin {
 
 export const bulletinsService = {
     async create(data: { title: string; content: string; category?: string; targetLevel?: string }): Promise<Bulletin> {
-        const token = authService.getToken();
-        const response = await fetch(`${API_URL}/bulletins`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(data)
-        });
-        if (!response.ok) throw new Error('Duyuru oluşturulamadı');
-        return response.json();
+        return apiClient.post<Bulletin>('/bulletins', data);
     },
 
     async getForTeacher(): Promise<Bulletin[]> {
-        const token = authService.getToken();
-        if (!token) return [];
-
-        const response = await fetch(`${API_URL}/bulletins/teacher`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        if (!response.ok) {
-            if (response.status === 401) {
-                // Token expired or invalid, return empty silently
-                return [];
-            }
-            const errorText = await response.text();
-            console.error('getForTeacher error:', response.status, errorText);
-            throw new Error(`Duyurular yüklenemedi: ${response.status}`);
-        }
-        return response.json();
+        return apiClient.get<Bulletin[]>('/bulletins/teacher');
     },
 
     async getForStudent(): Promise<Bulletin[]> {
-        const token = authService.getToken();
-        if (!token) return [];
-
-        const response = await fetch(`${API_URL}/bulletins/student`, {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        if (!response.ok) {
-            if (response.status === 401) {
-                // Token expired or invalid, return empty silently
-                return [];
-            }
-            const errorText = await response.text();
-            console.error('getForStudent error:', response.status, errorText);
-            throw new Error(`Duyurular yüklenemedi: ${response.status}`);
-        }
-        return response.json();
+        return apiClient.get<Bulletin[]>('/bulletins/student');
     },
 
     async delete(id: string): Promise<void> {
-        const token = authService.getToken();
-        const response = await fetch(`${API_URL}/bulletins/${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        if (!response.ok) throw new Error('Duyuru silinemedi');
+        await apiClient.delete(`/bulletins/${id}`);
     },
 
     async markAsRead(id: string): Promise<void> {
-        const token = authService.getToken();
-        if (!token) return;
-
-        const response = await fetch(`${API_URL}/bulletins/${id}/read`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
-        if (!response.ok) throw new Error('Duyuru okundu olarak işaretlenemedi');
+        await apiClient.post(`/bulletins/${id}/read`);
     }
 };

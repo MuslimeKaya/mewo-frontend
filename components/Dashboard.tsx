@@ -488,25 +488,25 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
 
                         <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                           {selectedAssignment ? (
-                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                              <div className="bg-[#FAFAFA] dark:bg-slate-800/50 rounded-[2.5rem] p-8 border-2 border-blue-100 dark:border-slate-800 shadow-inner hover:border-emerald-500/30 transition-colors duration-300">
-                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
-                                  <div className="flex-1 space-y-4">
-                                    <div className="flex items-center space-x-3">
-                                      <div className="bg-brand-100 dark:bg-brand-900/30 p-2 rounded-xl">
-                                        <Calendar className="w-4 h-4 text-brand-600" />
+                            <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                              <div className="bg-[#FAFAFA] dark:bg-slate-800/50 rounded-[2rem] p-6 border-2 border-blue-100 dark:border-slate-800 shadow-inner hover:border-emerald-500/30 transition-colors duration-300">
+                                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                  <div className="flex-1 space-y-3">
+                                    <div className="flex items-center space-x-2">
+                                      <div className="bg-brand-100 dark:bg-brand-900/30 p-1.5 rounded-lg">
+                                        <Calendar className="w-3 h-3 text-brand-600" />
                                       </div>
-                                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
                                         {new Date(selectedAssignment.createdAt).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric' })}
                                       </span>
                                     </div>
-                                    <h4 className="text-xl font-black text-slate-900 dark:text-white tracking-tight uppercase leading-none">
+                                    <h4 className="text-lg font-black text-slate-900 dark:text-white tracking-tight uppercase leading-none">
                                       {selectedAssignment.title || 'Başlıksız Ödev'}
                                     </h4>
                                     {selectedAssignment.description && (
-                                      <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-100 dark:border-slate-800 shadow-sm relative group/desc">
-                                        <MessageSquare className="absolute -top-3 -left-3 w-8 h-8 text-brand-100 dark:text-brand-900/40 -rotate-12" />
-                                        <p className="text-sm font-bold text-slate-600 dark:text-slate-400 leading-relaxed italic">
+                                      <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-100 dark:border-slate-800 shadow-sm relative group/desc">
+                                        <MessageSquare className="absolute -top-2.5 -left-2.5 w-6 h-6 text-brand-100 dark:text-brand-900/40 -rotate-12" />
+                                        <p className="text-xs font-bold text-slate-600 dark:text-slate-400 leading-relaxed italic">
                                           "{selectedAssignment.description}"
                                         </p>
                                       </div>
@@ -514,34 +514,34 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                   </div>
 
                                   {selectedAssignment.files && selectedAssignment.files.length > 0 && (
-                                    <div className="w-full md:w-72 space-y-3">
-                                      <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Ekli Materyaller</p>
+                                    <div className="w-full md:w-64 space-y-2">
+                                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Ekli Materyaller</p>
                                       {selectedAssignment.files.map((file: any, fIdx: number) => {
                                         const getFileIcon = (name: string) => {
                                           const ext = name.toLowerCase().split('.').pop();
-                                          if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext || '')) return <ImageIcon className="w-4 h-4 text-rose-500" />;
-                                          if (['jpg', 'jpeg', 'png', 'gif'].includes(ext || '')) return <ImageIcon className="w-4 h-4" />;
-                                          if (['xlsx', 'xls', 'csv'].includes(ext || '')) return <FileSpreadsheet className="w-4 h-4" />;
-                                          return <FileText className="w-4 h-4" />;
+                                          if (['mp4', 'mov', 'avi', 'mkv', 'webm'].includes(ext || '')) return <ImageIcon className="w-3 h-3 text-rose-500" />;
+                                          if (['jpg', 'jpeg', 'png', 'gif'].includes(ext || '')) return <ImageIcon className="w-3 h-3" />;
+                                          if (['xlsx', 'xls', 'csv'].includes(ext || '')) return <FileSpreadsheet className="w-3 h-3" />;
+                                          return <FileText className="w-3 h-3" />;
                                         };
                                         return (
-                                          <div key={fIdx} className="bg-[#F8F9FA] dark:bg-slate-900 p-3 rounded-2xl border-2 border-blue-100 dark:border-slate-800 flex items-center justify-between group/file hover:border-emerald-500 transition-all shadow-sm hover:bg-white hover:shadow-md hover:shadow-emerald-500/10">
-                                            <div className="flex items-center space-x-3 min-w-0">
-                                              <div className="bg-brand-50 dark:bg-brand-900/30 p-2 rounded-lg text-brand-600">
+                                          <div key={fIdx} className="bg-[#F8F9FA] dark:bg-slate-900 p-2.5 rounded-xl border-2 border-blue-100 dark:border-slate-800 flex items-center justify-between group/file hover:border-emerald-500 transition-all shadow-sm hover:bg-white hover:shadow-md hover:shadow-emerald-500/10">
+                                            <div className="flex items-center space-x-2 min-w-0">
+                                              <div className="bg-brand-50 dark:bg-brand-900/30 p-1.5 rounded-lg text-brand-600">
                                                 {getFileIcon(file.name)}
                                               </div>
-                                              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 truncate max-w-[120px]">{file.name}</span>
+                                              <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate max-w-[100px]">{file.name}</span>
                                             </div>
                                             <div className="flex items-center space-x-1">
                                               <button
-                                                className="flex items-center space-x-1 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-brand-600 hover:border-brand-200 dark:hover:border-brand-800 transition-all hover:shadow-sm cursor-pointer"
+                                                className="flex items-center space-x-1 px-2.5 py-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-[9px] font-black uppercase tracking-widest text-slate-500 hover:text-brand-600 hover:border-brand-200 dark:hover:border-brand-800 transition-all hover:shadow-sm cursor-pointer"
                                                 onClick={(e) => {
                                                   e.preventDefault();
                                                   setViewingFile(file);
                                                 }}
                                               >
                                                 <span>{viewingFile?.url === file.url ? 'AÇIK' : 'AÇ'}</span>
-                                                {viewingFile?.url === file.url ? <Check className="w-3 h-3 text-emerald-500" /> : <ExternalLink className="w-3 h-3" />}
+                                                {viewingFile?.url === file.url ? <Check className="w-2.5 h-2.5 text-emerald-500" /> : <ExternalLink className="w-2.5 h-2.5" />}
                                               </button>
                                             </div>
                                           </div>
@@ -552,14 +552,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                 </div>
 
                                 {viewingFile && (
-                                  <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700 w-full animate-in fade-in zoom-in duration-500">
-                                    <div className="bg-slate-900 rounded-[3rem] overflow-hidden shadow-2xl relative border-4 border-slate-800">
-                                      <div className="absolute top-6 right-6 z-20">
+                                  <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 w-full animate-in fade-in zoom-in duration-500">
+                                    <div className="bg-slate-900 rounded-[2.5rem] overflow-hidden shadow-2xl relative border-4 border-slate-800">
+                                      <div className="absolute top-4 right-4 z-20">
                                         <button
                                           onClick={() => setViewingFile(null)}
-                                          className="bg-black/60 hover:bg-rose-600 text-white p-3 rounded-2xl backdrop-blur-xl transition-all active:scale-95 border border-white/10"
+                                          className="bg-black/60 hover:bg-rose-600 text-white p-2 rounded-xl backdrop-blur-xl transition-all active:scale-95 border border-white/10"
                                         >
-                                          <X className="w-6 h-6" />
+                                          <X className="w-5 h-5" />
                                         </button>
                                       </div>
                                       <div className="flex justify-center bg-black/20">
@@ -568,7 +568,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                           const ext = viewingFile.name.toLowerCase().split('.').pop();
                                           if (['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'].includes(ext)) {
                                             return (
-                                              <video controls autoPlay className="max-h-[600px] w-full object-contain">
+                                              <video controls autoPlay className="max-h-[500px] w-full object-contain">
                                                 <source src={url} type={`video/${ext === 'mov' ? 'mp4' : ext}`} />
                                                 Tarayıcınız bu videoyu oynatamıyor.
                                               </video>
@@ -576,49 +576,49 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                           }
                                           if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
                                             return (
-                                              <img src={url} alt="Ödev detay" className="max-h-[700px] w-full object-contain shadow-2xl" />
+                                              <img src={url} alt="Ödev detay" className="max-h-[600px] w-full object-contain shadow-2xl" />
                                             );
                                           }
                                           if (ext === 'pdf') {
                                             return (
-                                              <iframe src={url} className="w-full h-[700px] bg-white border-none" title="PDF Önizleme" />
+                                              <iframe src={url} className="w-full h-[600px] bg-white border-none" title="PDF Önizleme" />
                                             );
                                           }
                                           if (['mp3', 'wav', 'ogg'].includes(ext)) {
                                             return (
-                                              <div className="p-20 w-full flex flex-col items-center justify-center space-y-6 bg-gradient-to-b from-slate-800 to-slate-900">
-                                                <div className="w-20 h-20 bg-brand-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-brand-500/20 animate-bounce">
-                                                  <Sparkles className="w-10 h-10 text-white" />
+                                              <div className="p-16 w-full flex flex-col items-center justify-center space-y-4 bg-gradient-to-b from-slate-800 to-slate-900">
+                                                <div className="w-16 h-16 bg-brand-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-brand-500/20 animate-bounce">
+                                                  <Sparkles className="w-8 h-8 text-white" />
                                                 </div>
-                                                <audio controls autoPlay className="w-full max-w-md accent-brand-500">
+                                                <audio controls autoPlay className="w-full max-w-sm accent-brand-500">
                                                   <source src={url} />
                                                 </audio>
                                               </div>
                                             )
                                           }
                                           return (
-                                            <div className="p-20 text-center text-slate-400">
-                                              <FileText className="w-16 h-16 mx-auto mb-6 opacity-20" />
-                                              <p className="text-lg font-black uppercase tracking-widest">Önizleme Desteklenmiyor</p>
-                                              <a href={url} target="_blank" rel="noreferrer" className="mt-4 px-6 py-3 bg-brand-600 text-white rounded-xl font-black uppercase tracking-widest inline-block hover:bg-brand-500 transition-colors">Dosyayı İndir</a>
+                                            <div className="p-16 text-center text-slate-400">
+                                              <FileText className="w-12 h-12 mx-auto mb-4 opacity-20" />
+                                              <p className="text-base font-black uppercase tracking-widest">Önizleme Desteklenmiyor</p>
+                                              <a href={url} target="_blank" rel="noreferrer" className="mt-3 px-5 py-2.5 bg-brand-600 text-white rounded-xl font-black uppercase tracking-widest inline-block hover:bg-brand-500 transition-colors text-xs">Dosyayı İndir</a>
                                             </div>
                                           );
                                         })()}
                                       </div>
-                                      <div className="p-5 bg-slate-800/80 backdrop-blur-md text-white flex items-center justify-between border-t border-white/5">
-                                        <div className="flex items-center space-x-3">
-                                          <div className="bg-brand-600 px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-[0.2em]">Önizleme</div>
-                                          <span className="text-sm font-bold opacity-80">{viewingFile.name}</span>
+                                      <div className="p-4 bg-slate-800/80 backdrop-blur-md text-white flex items-center justify-between border-t border-white/5">
+                                        <div className="flex items-center space-x-2">
+                                          <div className="bg-brand-600 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-[0.2em]">Önizleme</div>
+                                          <span className="text-xs font-bold opacity-80">{viewingFile.name}</span>
                                         </div>
                                       </div>
                                     </div>
                                   </div>
                                 )}
 
-                                <div className="space-y-4">
-                                  <div className="flex items-center space-x-3 ml-2">
-                                    <div className="w-1.5 h-6 bg-brand-500 rounded-full" />
-                                    <h5 className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">Ödev Kelimeleri ({selectedAssignment.words?.length || 0})</h5>
+                                <div className="space-y-3">
+                                  <div className="flex items-center space-x-2 ml-1">
+                                    <div className="w-1 h-5 bg-brand-500 rounded-full" />
+                                    <h5 className="text-[10px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">Ödev Kelimeleri ({selectedAssignment.words?.length || 0})</h5>
                                   </div>
                                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3">
                                     {selectedAssignment.words?.map((word: any, id: number) => (
