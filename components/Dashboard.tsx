@@ -69,7 +69,7 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
       e.stopPropagation();
       onToggle();
     }}
-    className={`flex items-center justify-between px-2.5 py-2.5 rounded-xl border-2 transition-all cursor-pointer group/word min-h-[4rem] relative overflow-hidden ${isLearned
+    className={`flex items-center justify-between px-3 py-2.5 rounded-xl border-2 transition-all cursor-pointer group/word min-h-[4rem] relative overflow-hidden ${isLearned
       ? 'bg-brand-600 border-brand-500 text-white shadow-lg shadow-brand-500/20'
       : isNew
         ? 'bg-emerald-50/40 dark:bg-emerald-900/10 border-emerald-200/50 dark:border-emerald-800/50 shadow-lg shadow-emerald-500/5'
@@ -78,11 +78,11 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
   >
     <div className="min-w-0 pr-1.5 relative z-10 flex flex-col justify-center">
       <div className="flex items-center gap-1.5 mb-1">
-        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md ${isLearned ? 'bg-white/20 text-white' : isNew ? 'bg-emerald-100 text-emerald-600' : 'bg-brand-100 dark:bg-brand-900/30 text-brand-600'} inline-block tracking-tighter`}>
+        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-md ${isLearned ? 'bg-white/20 text-white' : isNew ? 'bg-emerald-100 text-emerald-600' : 'bg-brand-100 dark:bg-brand-900/30 text-brand-600'} inline-block tracking-tighter`}>
           {word.cefr || '??'}
         </span>
         {isNew && !isLearned && (
-          <span className="bg-emerald-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter animate-bounce">Yeni</span>
+          <span className="bg-emerald-600 text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tighter animate-pulse">YENİ</span>
         )}
         {word.pronunciation && (
           <button
@@ -97,8 +97,8 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
           </button>
         )}
       </div>
-      <p className="text-xs font-black truncate leading-tight mb-0.5">{word.en}</p>
-      <p className={`text-[10px] font-bold leading-tight truncate ${isLearned ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{word.tr}</p>
+      <p className="text-xs font-bold truncate leading-tight mb-0.5 uppercase">{word.en}</p>
+      <p className={`text-[10px] font-medium leading-tight truncate ${isLearned ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{word.tr}</p>
     </div>
     <div className="flex items-center space-x-1 relative z-10">
       {word.teachers && word.teachers.length > 0 && (
@@ -124,6 +124,29 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
   </div>
 );
 
+const CompactWordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: boolean, isNew?: boolean, onToggle: () => void }) => (
+  <div
+    onClick={(e) => {
+      e.stopPropagation();
+      onToggle();
+    }}
+    className={`flex items-center justify-between px-2 py-1.5 rounded-lg border transition-all cursor-pointer group/word min-h-[3.2rem] relative overflow-hidden ${isLearned
+      ? 'bg-brand-600 border-brand-500 text-white shadow-md shadow-brand-500/20'
+      : isNew
+        ? 'bg-emerald-50/40 dark:bg-emerald-900/10 border-emerald-200/50 dark:border-emerald-800/50 shadow-md shadow-emerald-500/5'
+        : 'bg-[#F8F9FA] dark:bg-slate-800 border-blue-100 dark:border-slate-700 shadow-sm hover:border-emerald-500 hover:shadow-emerald-500/10 hover:bg-white'
+      } hover:-translate-y-0.5 active:scale-95 duration-300`}
+  >
+    <div className="min-w-0 pr-1 relative z-10 flex flex-col justify-center">
+      <p className={`text-[10px] font-bold truncate leading-tight uppercase ${isLearned ? 'text-white' : 'text-slate-900 dark:text-white'}`}>{word.en}</p>
+      <p className={`text-[8px] font-medium leading-tight truncate ${isLearned ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{word.tr}</p>
+    </div>
+    <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${isLearned ? 'bg-white/20' : isNew ? 'bg-emerald-100 dark:bg-emerald-800' : 'bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800'}`}>
+      {isLearned ? <Check className="w-3 h-3 text-white" /> : isNew ? <Sparkles className="w-2.5 h-2.5 text-emerald-500" /> : <Sparkles className="w-2.5 h-2.5 text-brand-500" />}
+    </div>
+  </div>
+);
+
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefreshUser }) => {
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [teacherWords, setTeacherWords] = useState<WordType[]>([]);
@@ -138,11 +161,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
   // Handle Initial State from URL
   const [activeCard, setActiveCard] = useState<'study' | 'history'>(() => {
     if (typeof window === 'undefined') return 'study';
-    if (window.location.pathname === '/hub/assignments') return 'history';
+    const path = window.location.pathname;
+    if (path === '/hub/assignments') return 'history';
     return 'study';
   });
   const [wordPage, setWordPage] = useState(1);
-  const WORDS_PER_PAGE = 24;
+  const CURRENT_PAGE_SIZE = selectedAssignment ? 18 : 24;
 
   const [activeTeacherCard, setActiveTeacherCard] = useState<'selector' | 'list' | 'history'>(() => {
     if (typeof window === 'undefined') return 'selector';
@@ -165,20 +189,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
   // Sync Student URL
   const updateStudentCard = (card: 'study' | 'history', assignmentId?: string) => {
     setActiveCard(card);
-    let path = '/hub/study';
-    if (card === 'history') path = '/hub/assignments';
+    const url = new URL(window.location.origin + (card === 'history' ? '/hub/assignments' : '/hub/study'));
 
     if (assignmentId) {
-      const url = new URL(window.location.href);
       url.searchParams.set('id', assignmentId);
-      window.history.pushState({}, '', url.toString());
-    } else {
-      if (card === 'study') {
-        window.history.pushState({}, '', '/hub/study');
-      } else {
-        window.history.pushState({}, '', path);
-      }
     }
+
+    window.history.pushState({}, '', url.toString());
   };
 
   useEffect(() => {
@@ -203,7 +220,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
       fetchLearnedWords();
       fetchRecommendedWords();
     }
-  }, [user, refreshTrigger]);
+  }, [user?.id, user?.role, refreshTrigger]);
 
 
   const fetchAssignments = async () => {
@@ -700,14 +717,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                     <h5 className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">Ödev Kelimeleri ({selectedAssignment.words?.length || 0})</h5>
                                   </div>
                                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2">
-                                    {selectedAssignment.words?.slice((wordPage - 1) * WORDS_PER_PAGE, wordPage * WORDS_PER_PAGE).map((word: any, id: number) => (
+                                    {selectedAssignment.words?.slice((wordPage - 1) * CURRENT_PAGE_SIZE, wordPage * CURRENT_PAGE_SIZE).map((word: any, id: number) => (
                                       <WordCard key={id} word={word} isLearned={learnedWordIds.has(word.id)} onToggle={() => handleToggleLearned(word.id)} />
                                     ))}
                                   </div>
                                 </div>
                               </div>
                               {/* Compact Pagination for Assignment Words */}
-                              {selectedAssignment.words && selectedAssignment.words.length > WORDS_PER_PAGE && (
+                              {selectedAssignment.words && selectedAssignment.words.length > CURRENT_PAGE_SIZE && (
                                 <div className="flex items-center justify-center space-x-2 mt-auto pt-2">
                                   <button
                                     onClick={() => setWordPage(p => Math.max(1, p - 1))}
@@ -717,11 +734,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                     <ChevronLeft className="w-3 h-3 text-slate-500" />
                                   </button>
                                   <span className="text-[10px] font-black tabular-nums">
-                                    <span className="text-orange-500">{wordPage}</span><span className="text-slate-500 dark:text-slate-400"> / {Math.ceil(selectedAssignment.words.length / WORDS_PER_PAGE)}</span>
+                                    <span className="text-orange-500">{wordPage}</span><span className="text-slate-500 dark:text-slate-400"> / {Math.ceil(selectedAssignment.words.length / CURRENT_PAGE_SIZE)}</span>
                                   </span>
                                   <button
-                                    onClick={() => setWordPage(p => Math.min(Math.ceil(selectedAssignment.words.length / WORDS_PER_PAGE), p + 1))}
-                                    disabled={wordPage >= Math.ceil(selectedAssignment.words.length / WORDS_PER_PAGE)}
+                                    onClick={() => setWordPage(p => Math.min(Math.ceil(selectedAssignment.words.length / CURRENT_PAGE_SIZE), p + 1))}
+                                    disabled={wordPage >= Math.ceil(selectedAssignment.words.length / CURRENT_PAGE_SIZE)}
                                     className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors"
                                   >
                                     <ChevronRight className="w-3 h-3 text-slate-500" />
@@ -732,7 +749,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                           ) : (
                             <div className="h-full flex flex-col">
                               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2 flex-1 content-start">
-                                {teacherWords.slice((wordPage - 1) * WORDS_PER_PAGE, wordPage * WORDS_PER_PAGE).map((word) => (
+                                {teacherWords.slice((wordPage - 1) * CURRENT_PAGE_SIZE, wordPage * CURRENT_PAGE_SIZE).map((word) => (
                                   <WordCard
                                     key={word.id}
                                     word={word}
@@ -746,7 +763,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                 ))}
                               </div>
                               {/* Compact Pagination for Teacher Words */}
-                              {teacherWords.length > WORDS_PER_PAGE && (
+                              {teacherWords.length > CURRENT_PAGE_SIZE && (
                                 <div className="flex items-center justify-center space-x-2 mt-auto pt-2">
                                   <button
                                     onClick={() => setWordPage(p => Math.max(1, p - 1))}
@@ -756,11 +773,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                     <ChevronLeft className="w-3 h-3 text-slate-500" />
                                   </button>
                                   <span className="text-[9px] font-bold text-slate-400">
-                                    {wordPage} / {Math.ceil(teacherWords.length / WORDS_PER_PAGE)}
+                                    {wordPage} / {Math.ceil(teacherWords.length / CURRENT_PAGE_SIZE)}
                                   </span>
                                   <button
-                                    onClick={() => setWordPage(p => Math.min(Math.ceil(teacherWords.length / WORDS_PER_PAGE), p + 1))}
-                                    disabled={wordPage >= Math.ceil(teacherWords.length / WORDS_PER_PAGE)}
+                                    onClick={() => setWordPage(p => Math.min(Math.ceil(teacherWords.length / CURRENT_PAGE_SIZE), p + 1))}
+                                    disabled={wordPage >= Math.ceil(teacherWords.length / CURRENT_PAGE_SIZE)}
                                     className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors"
                                   >
                                     <ChevronRight className="w-3 h-3 text-slate-500" />
@@ -847,9 +864,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
                   {recommendedWords.map((word) => (
-                    <WordCard
+                    <CompactWordCard
                       key={word.id}
                       word={word}
                       isLearned={learnedWordIds.has(word.id)}

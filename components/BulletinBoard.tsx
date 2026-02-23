@@ -200,7 +200,12 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
                                             <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${isHigh ? 'bg-orange-100 text-orange-600' : 'bg-slate-50 text-slate-400 dark:bg-slate-800'}`}>
                                                 {bulletin.category}
                                             </span>
-                                            {isUnread && <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                                            {isUnread && (
+                                                <div className="relative flex items-center justify-center">
+                                                    <span className="absolute inline-flex h-3 w-3 animate-ping rounded-full bg-orange-400 opacity-75"></span>
+                                                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-orange-600"></span>
+                                                </div>
+                                            )}
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <div className="flex items-center gap-1 opacity-40">

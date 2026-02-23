@@ -213,7 +213,7 @@ export const WordSelector: React.FC<WordSelectorProps> = ({ onWordAdded, refresh
                                     : 'bg-[#F8F9FA] dark:bg-slate-800 border-blue-100 dark:border-slate-700 shadow-sm hover:bg-white hover:border-emerald-500 hover:shadow-xl hover:shadow-emerald-500/10'
                                     }`}>
                                     <div className="flex-1 min-w-0 pr-1.5">
-                                        <div className="flex items-center space-x-1 mb-1">
+                                        <div className="flex items-center space-x-1.5 mb-1">
                                             <div className="px-1 py-[1px] bg-slate-200 dark:bg-brand-900/30 rounded-[3px] border border-slate-300 dark:border-brand-800 flex items-center justify-center shrink-0">
                                                 <span className="text-[7px] font-black text-slate-700 dark:text-brand-400">{word.cefr || '?'}</span>
                                             </div>
@@ -233,7 +233,7 @@ export const WordSelector: React.FC<WordSelectorProps> = ({ onWordAdded, refresh
                                                 </button>
                                             )}
                                         </div>
-                                        <p className="text-xs font-black text-slate-800 dark:text-white leading-tight truncate" title={word.en}>{word.en}</p>
+                                        <p className="text-xs font-black text-slate-800 dark:text-white leading-tight truncate uppercase" title={word.en}>{word.en}</p>
                                         <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 leading-tight truncate mt-0.5" title={word.tr}>{word.tr}</p>
                                     </div>
                                     <button
