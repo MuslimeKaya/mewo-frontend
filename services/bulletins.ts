@@ -16,6 +16,11 @@ export interface Bulletin {
         readCount: number;
         totalCount: number;
         percentage: number;
+        viewers?: {
+            id: string;
+            name: string;
+            avatar?: string;
+        }[];
     };
     teacher?: {
         firstName: string;

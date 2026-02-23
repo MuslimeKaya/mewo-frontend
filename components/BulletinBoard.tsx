@@ -186,7 +186,10 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
                         return (
                             <div
                                 key={bulletin.id}
-                                onClick={() => handleMarkAsRead(bulletin.id, bulletin.isRead)}
+                                onClick={() => {
+                                    handleMarkAsRead(bulletin.id, bulletin.isRead);
+                                    // Local state update is already handled in handleMarkAsRead
+                                }}
                                 className={`group rounded-3xl transition-all duration-300 border-2 relative overflow-hidden active:scale-[0.99] cursor-pointer ${isUnread
                                     ? isHigh
                                         ? 'bg-orange-50/20 border-orange-200 dark:bg-orange-950/5 dark:border-orange-500/20 shadow-sm'

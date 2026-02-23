@@ -172,7 +172,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
               >
                 <Bell className={`w-4 h-4 md:w-5 md:h-5 ${hasUnread ? 'text-brand-600' : ''}`} />
                 {hasUnread && (
-                  <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+                  <div className="absolute top-2 right-2 flex items-center justify-center">
+                    <span className="absolute inline-flex h-3 w-3 animate-ping rounded-full bg-orange-400 opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-orange-600 border border-white dark:border-slate-900"></span>
+                  </div>
                 )}
               </button>
               <button
