@@ -82,7 +82,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
     { id: AppTab.DASHBOARD, label: 'Hub', icon: LayoutDashboard },
     ...(user.role === 'student' ? [{ id: AppTab.PATHWAY, label: 'Roadmap', icon: Compass }] : []),
     { id: AppTab.GRAMMAR, label: 'Grammar', icon: BookOpen },
-    { id: AppTab.AI_TUTOR, label: 'Chat', icon: Sparkles },
     { id: AppTab.LIBRARY, label: 'Library', icon: Library },
     ...(user.role === 'teacher' ? [{ id: AppTab.STUDENTS, label: 'Students', icon: Users }] : []),
     ...(user.role === 'student' ? [{ id: AppTab.TEACHERS, label: 'Teachers', icon: Users }] : []),
@@ -94,7 +93,6 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
     switch (id) {
       case AppTab.PATHWAY: path = '/roadmap'; break;
       case AppTab.GRAMMAR: path = '/grammar'; break;
-      case AppTab.AI_TUTOR: path = '/tutor'; break;
       case AppTab.LIBRARY: path = '/library'; break;
       case AppTab.STUDENTS: path = '/students'; break;
       case AppTab.TEACHERS: path = '/teachers'; break;

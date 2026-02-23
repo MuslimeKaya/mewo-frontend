@@ -33,7 +33,6 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { AppTab, WeeklyGoal, User } from '../types';
-import { LiveTutor } from './LiveTutor';
 import { Translator } from './Translator';
 import { WordSelector } from './WordSelector';
 import { TeacherWordList } from './TeacherWordList';
@@ -130,19 +129,21 @@ const CompactWordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLe
       e.stopPropagation();
       onToggle();
     }}
-    className={`flex items-center justify-between px-2 py-1.5 rounded-lg border transition-all cursor-pointer group/word min-h-[3.2rem] relative overflow-hidden ${isLearned
-      ? 'bg-brand-600 border-brand-500 text-white shadow-md shadow-brand-500/20'
+    className={`group/word flex flex-col items-center justify-center p-2 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden h-28 text-center ${isLearned
+      ? 'bg-brand-600 border-brand-500 text-white shadow-lg'
       : isNew
-        ? 'bg-emerald-50/40 dark:bg-emerald-900/10 border-emerald-200/50 dark:border-emerald-800/50 shadow-md shadow-emerald-500/5'
-        : 'bg-[#F8F9FA] dark:bg-slate-800 border-blue-100 dark:border-slate-700 shadow-sm hover:border-emerald-500 hover:shadow-emerald-500/10 hover:bg-white'
-      } hover:-translate-y-0.5 active:scale-95 duration-300`}
+        ? 'bg-white dark:bg-slate-900 border-brand-100 dark:border-brand-900/40 shadow-sm'
+        : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700'
+      } hover:-translate-y-1 hover:shadow-xl duration-300`}
   >
-    <div className="min-w-0 pr-1 relative z-10 flex flex-col justify-center">
-      <p className={`text-[10px] font-bold truncate leading-tight uppercase ${isLearned ? 'text-white' : 'text-slate-900 dark:text-white'}`}>{word.en}</p>
-      <p className={`text-[8px] font-medium leading-tight truncate ${isLearned ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{word.tr}</p>
-    </div>
-    <div className={`w-5 h-5 rounded-md flex items-center justify-center shrink-0 transition-all ${isLearned ? 'bg-white/20' : isNew ? 'bg-emerald-100 dark:bg-emerald-800' : 'bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800'}`}>
-      {isLearned ? <Check className="w-3 h-3 text-white" /> : isNew ? <Sparkles className="w-2.5 h-2.5 text-emerald-500" /> : <Sparkles className="w-2.5 h-2.5 text-brand-500" />}
+    <span className={`text-[7px] font-black px-1.5 py-0.5 rounded-md mb-2 ${isLearned ? 'bg-white/20 text-white' : 'bg-brand-50 dark:bg-brand-900/30 text-brand-600'} uppercase tracking-[0.2em] relative z-10`}>
+      {word.cefr || 'A1'}
+    </span>
+    <p className={`text-[10px] font-black truncate max-w-full leading-none uppercase mb-1 relative z-10 ${isLearned ? 'text-white' : 'text-slate-900 dark:text-white'}`}>{word.en}</p>
+    <p className={`text-[8px] font-bold leading-tight line-clamp-2 px-1 relative z-10 ${isLearned ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{word.tr}</p>
+
+    <div className={`mt-2 w-4 h-4 rounded-md flex items-center justify-center shrink-0 transition-all relative z-10 ${isLearned ? 'bg-white/20' : 'bg-brand-50 dark:bg-brand-900/30'}`}>
+      {isLearned ? <Check className="w-2.5 h-2.5 text-white" /> : <Sparkles className="w-2.5 h-2.5 text-brand-500" />}
     </div>
   </div>
 );
@@ -881,34 +882,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-8 space-y-6">
-              <section className="group relative bg-slate-900 rounded-[3.5rem] p-10 md:p-14 text-white overflow-hidden shadow-2xl transition-all hover:shadow-brand-900/40 hover:scale-[1.01] active:scale-[0.98] duration-500 cursor-pointer"
-                onClick={() => onNavigate(AppTab.AI_TUTOR)}>
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-600/20 rounded-full blur-[100px] -mr-40 -mt-40 animate-pulse group-hover:bg-brand-500/30 transition-colors"></div>
-                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-indigo-600/10 rounded-full blur-[80px] -ml-20 -mb-20"></div>
-                <div className="relative z-10 space-y-7">
-                  <div className="inline-flex items-center space-x-2 bg-white/10 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-white/10 group-hover:border-white/20 transition-colors backdrop-blur-md">
-                    <Sparkles className="w-3.5 h-3.5 text-brand-400 animate-pulse" />
-                    <span>Mewo AI Tutor Lab</span>
-                  </div>
-                  <h3 className="text-2xl md:text-3xl font-black leading-[1.1] tracking-tight group-hover:translate-x-1 transition-transform">
-                    Konuşma <br /> <span className="text-brand-400 italic">Yeteneklerini <br /> Geliştir.</span>
-                  </h3>
-                  <p className="text-slate-400 text-sm md:text-base max-w-xs font-medium leading-relaxed">
-                    Yapay zeka eğitmenin Mewo ile 7/24 konuşma pratiği yap ve anlık geri bildirim al.
-                  </p>
-                  <button
-                    className="w-full md:w-auto bg-brand-600 hover:bg-brand-500 text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-brand-900/50 flex items-center justify-center group-hover:px-12 active:scale-95"
-                  >
-                    Pratiğe Başla <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-2 transition-transform" />
-                  </button>
-                </div>
-              </section>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 <Translator />
               </div>
             </div>
             <div className="lg:col-span-4 space-y-6">
-              <LiveTutor />
             </div>
           </div>
         </div >

@@ -64,7 +64,6 @@ export interface Word {
 export enum AppTab {
   DASHBOARD = 'dashboard',
   PATHWAY = 'pathway',
-  AI_TUTOR = 'tutor',
   LIBRARY = 'library',
   STUDENTS = 'students',
   TEACHERS = 'teachers',

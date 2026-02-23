@@ -165,19 +165,7 @@ export const StudentsView: React.FC = () => {
                 </div>
 
 
-                {activeTab === 'roster' && (
-                    <div className="flex items-center space-x-1 bg-slate-50 dark:bg-slate-800/50 p-1 rounded-lg">
-                        {(['all', 'active', 'top'] as const).map((f) => (
-                            <button
-                                key={f}
-                                onClick={() => setActiveFilter(f)}
-                                className={`px-3 py-1 text-[10px] font-bold rounded-md transition-all ${activeFilter === f ? 'bg-white dark:bg-slate-900 text-brand-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                            >
-                                {f === 'all' ? 'Tümü' : f === 'active' ? 'Aktif' : 'Elit'}
-                            </button>
-                        ))}
-                    </div>
-                )}
+                {/* Filter removed for minimalism as per user request */}
             </div>
 
 

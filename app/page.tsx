@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/Layout';
 import { Dashboard } from '@/components/Dashboard';
 import { RoadmapView } from '@/components/RoadmapView';
-import { AITutor } from '@/components/AITutor';
 import { ResourcesView } from '@/components/ResourcesView';
 import { StudentsView } from '@/components/StudentsView';
 import { TeachersView } from '@/components/TeachersView';
@@ -23,7 +22,6 @@ export default function Home() {
         if (typeof window === 'undefined') return AppTab.DASHBOARD;
         const path = window.location.pathname;
         if (path === '/roadmap' || path === '/pathway') return AppTab.PATHWAY;
-        if (path === '/tutor') return AppTab.AI_TUTOR;
         if (path === '/library') return AppTab.LIBRARY;
         if (path === '/grammar' || path.startsWith('/grammar/')) return AppTab.GRAMMAR;
         if (path === '/students' || path.startsWith('/students/')) return AppTab.STUDENTS;
@@ -72,7 +70,7 @@ export default function Home() {
 
         // --- Performance: Prune Storage ---
         const pruneStorage = () => {
-            const keysToKeep = ['mewo_user', 'mewo_last_tab', 'theme', 'mewo_student_level'];
+            const keysToKeep = ['mewo_user', 'mewo_last_tab', 'theme', 'mewo_student_level', 'mewo_gemini_api_key'];
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
                 if (key && key.startsWith('mewo_') && !keysToKeep.some(k => key.startsWith(k))) {
@@ -94,7 +92,6 @@ export default function Home() {
             path = '/hub';
             switch (activeTab) {
                 case AppTab.PATHWAY: path = '/roadmap'; break;
-                case AppTab.AI_TUTOR: path = '/tutor'; break;
                 case AppTab.LIBRARY: path = '/library'; break;
                 case AppTab.GRAMMAR:
                     path = window.location.pathname.startsWith('/grammar/')
@@ -168,8 +165,6 @@ export default function Home() {
                 return <Dashboard onNavigate={setActiveTab} user={currentUser} onRefreshUser={setCurrentUser} />;
             case AppTab.PATHWAY:
                 return <RoadmapView />;
-            case AppTab.AI_TUTOR:
-                return <AITutor />;
             case AppTab.LIBRARY:
                 return <ResourcesView />;
             case AppTab.STUDENTS:

@@ -1,8 +1,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { User, Camera, Mail, User as UserIcon, Type, Save, LogOut, CheckCircle, AlertCircle, Loader2, Lock, Check } from 'lucide-react';
+import { User, Camera, Mail, User as UserIcon, Type, Save, LogOut, CheckCircle, AlertCircle, Loader2, Lock, Check, Sparkles, Key, Zap, ExternalLink } from 'lucide-react';
 import { User as UserType } from '../types';
 import { authService, API_URL } from '../services/auth';
+import { geminiService } from '../services/geminiService';
 
 interface SettingsViewProps {
     user: UserType;
@@ -23,7 +24,14 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ user, onUpdateUser, 
     const [passwordLoading, setPasswordLoading] = useState(false);
     const [avatarLoading, setAvatarLoading] = useState(false);
     const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+    const [aiKey, setAiKey] = useState('');
+    const [isAiConnected, setIsAiConnected] = useState(false);
+    const [showAiConfig, setShowAiConfig] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        setIsAiConnected(geminiService.isConfigured());
+    }, []);
 
     const handleSave = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
@@ -122,6 +130,22 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ user, onUpdateUser, 
         }
     };
 
+    const handleSaveAiKey = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!aiKey.trim()) return;
+        geminiService.setApiKey(aiKey.trim());
+        setIsAiConnected(true);
+        setShowAiConfig(false);
+        setAiKey('');
+        setStatus({ type: 'success', message: 'Elite AI Modu Aktif Edildi!' });
+    };
+
+    const handleDisconnectAi = () => {
+        geminiService.removeApiKey();
+        setIsAiConnected(false);
+        setStatus({ type: 'success', message: 'AI Bağlantısı Kesildi' });
+    };
+
     const serverAvatarUrl = user.avatar
         ? (user.avatar.startsWith('http') ? user.avatar : `${API_URL.replace('/api', '')}${user.avatar}`)
         : null;
@@ -214,6 +238,97 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ user, onUpdateUser, 
                                 />
                             </div>
                         </form>
+
+                        {/* AI Service Section */}
+                        <div className="pt-3 border-t border-slate-50 dark:border-slate-800">
+                            {!showAiConfig ? (
+                                <button
+                                    onClick={() => setShowAiConfig(true)}
+                                    className={`w-full py-2 text-[9px] font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center gap-2 border-2 ${isAiConnected
+                                        ? 'bg-emerald-50 text-emerald-600 border-emerald-100 dark:bg-emerald-950/20 dark:border-emerald-500/20'
+                                        : 'bg-brand-50 text-brand-600 border-brand-100 dark:bg-brand-950/20 dark:border-brand-500/20'}`}
+                                >
+                                    <Sparkles className={`w-3 h-3 ${isAiConnected ? 'animate-pulse' : ''}`} />
+                                    {isAiConnected ? 'ELITE AI MODU AKTİF' : 'AI BAĞLANTISINI KUR'}
+                                </button>
+                            ) : (
+                                <div className="space-y-3 animate-in slide-in-from-top-2 duration-300">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Sparkles className="w-3 h-3 text-brand-600" />
+                                            <h3 className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-widest">AI Servis Ayarları</h3>
+                                        </div>
+                                        <button
+                                            onClick={() => setShowAiConfig(false)}
+                                            className="text-[9px] font-black text-rose-500 uppercase tracking-widest hover:underline"
+                                        >
+                                            İPTAL
+                                        </button>
+                                    </div>
+
+                                    <div className="bg-brand-50 dark:bg-brand-950/20 p-3 rounded-2xl border border-brand-100 dark:border-brand-500/10 space-y-3">
+                                        <div className="flex items-start gap-2">
+                                            <div className="bg-white dark:bg-slate-900 p-1.5 rounded-lg shadow-sm">
+                                                <Key className="w-3 h-3 text-brand-600" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-tight">Gemini API Key</p>
+                                                {isAiConnected ? (
+                                                    <div className="mt-2 p-2 bg-emerald-50 dark:bg-emerald-900/10 border border-emerald-100 dark:border-emerald-500/20 rounded-xl space-y-1">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <Check className="w-3 h-3 text-emerald-500" />
+                                                            <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">BAĞLANTI AKTİF</span>
+                                                        </div>
+                                                        <p className="text-[10px] font-mono font-bold text-slate-500 dark:text-slate-400 break-all px-1">
+                                                            {localStorage.getItem('mewo_gemini_api_key')
+                                                                ? `${localStorage.getItem('mewo_gemini_api_key')?.substring(0, 10)}...`
+                                                                : 'ANAHTAR OKUNAMIYOR'}
+                                                        </p>
+                                                    </div>
+                                                ) : (
+                                                    <p className="text-[8px] font-medium text-slate-400 leading-tight mt-0.5">Google AI Studio'dan aldığınız anahtarı buraya girin.</p>
+                                                )}
+                                            </div>
+                                        </div>
+
+                                        <form onSubmit={handleSaveAiKey} className="space-y-2">
+                                            <input
+                                                type="text"
+                                                value={aiKey}
+                                                onChange={e => setAiKey(e.target.value)}
+                                                className="w-full bg-white dark:bg-slate-900 border border-brand-100 dark:border-brand-500/20 rounded-xl px-3 py-2 text-xs font-bold dark:text-white outline-none focus:ring-2 focus:ring-brand-500/10 transition-all font-mono"
+                                                placeholder="AIza... (Buraya Yapıştırın)"
+                                            />
+                                            <div className="flex gap-2">
+                                                <button
+                                                    type="submit"
+                                                    className="flex-1 bg-brand-600 text-white rounded-xl py-2 text-[9px] font-black uppercase tracking-widest hover:bg-brand-700 transition-all shadow-lg shadow-brand-500/20"
+                                                >
+                                                    {isAiConnected ? 'ANAHTARI GÜNCELLE' : 'SİSTEME BAĞLA'}
+                                                </button>
+                                                {isAiConnected && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={handleDisconnectAi}
+                                                        className="px-4 bg-rose-50 dark:bg-rose-900/10 text-rose-600 border border-rose-100 dark:border-rose-950/20 rounded-xl text-[9px] font-black uppercase"
+                                                    >
+                                                        SİL
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </form>
+
+                                        <a
+                                            href="https://aistudio.google.com/app/apikey"
+                                            target="_blank"
+                                            className="flex items-center justify-center gap-1.5 text-[8px] font-black text-brand-600/60 hover:text-brand-600 transition-colors uppercase tracking-widest py-1"
+                                        >
+                                            Ücretsiz Anahtar Al <ExternalLink className="w-2 h-2" />
+                                        </a>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
 
                         {/* Password Section Toggle */}
                         <div className="pt-3 border-t border-slate-50 dark:border-slate-800">

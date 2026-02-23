@@ -262,13 +262,35 @@ export const BulletinBoard: React.FC<BulletinBoardProps> = ({ user }) => {
 
                                     {user.role === 'teacher' && bulletin.readStats && isExpanded && (
                                         <div className="mt-3 p-2.5 bg-slate-50/50 dark:bg-slate-800/30 rounded-xl animate-in slide-in-from-top-1">
-                                            <div className="flex items-center justify-between mb-1.5">
-                                                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Okunma</span>
-                                                <span className="text-[8px] font-black text-brand-600">%{Math.round(bulletin.readStats.percentage)}</span>
-                                            </div>
-                                            <div className="h-0.5 w-full bg-slate-100 dark:bg-slate-700/50 rounded-full overflow-hidden">
-                                                <div className="h-full bg-brand-500" style={{ width: `${bulletin.readStats.percentage}%` }} />
-                                            </div>
+                                            {bulletin.readStats.viewers && (
+                                                <div className="space-y-2 pt-1">
+                                                    <div className="flex items-center justify-between mb-1">
+                                                        <span className="text-[7px] font-black text-slate-400 uppercase tracking-[0.2em]">Görüntüleyenler</span>
+                                                        <span className="text-[8px] font-black text-brand-600 bg-brand-50 dark:bg-brand-900/10 px-1.5 py-0.5 rounded-md leading-none">
+                                                            %{Math.round(bulletin.readStats.percentage)}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {bulletin.readStats.viewers.map((viewer) => (
+                                                            <div
+                                                                key={viewer.id}
+                                                                className="flex items-center gap-1 bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800/50 pl-0.5 pr-1.5 py-0.5 rounded-lg shadow-sm shadow-slate-200/50 dark:shadow-none"
+                                                            >
+                                                                <div className="w-3.5 h-3.5 bg-brand-50 dark:bg-brand-900/20 rounded-md flex items-center justify-center text-[6px] font-black text-brand-600 overflow-hidden border border-brand-100/50 dark:border-brand-500/10">
+                                                                    {viewer.avatar ? (
+                                                                        <img
+                                                                            src={viewer.avatar.startsWith('http') ? viewer.avatar : `${API_URL.replace('/api', '')}${viewer.avatar}`}
+                                                                            alt=""
+                                                                            className="w-full h-full object-cover"
+                                                                        />
+                                                                    ) : viewer.name[0]}
+                                                                </div>
+                                                                <span className="text-[8px] font-bold text-slate-500 dark:text-slate-300 lowercase leading-none pb-0.5">{viewer.name}</span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
