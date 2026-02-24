@@ -33,6 +33,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { AppTab, WeeklyGoal, User } from '../types';
+import { LiveTutor } from './LiveTutor';
 import { Translator } from './Translator';
 import { WordSelector } from './WordSelector';
 import { TeacherWordList } from './TeacherWordList';
@@ -68,7 +69,7 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
       e.stopPropagation();
       onToggle();
     }}
-    className={`flex items-center justify-between px-3 py-2.5 rounded-xl border-2 transition-all cursor-pointer group/word min-h-[4rem] relative overflow-hidden ${isLearned
+    className={`flex items-center justify-between px-2.5 py-2.5 rounded-xl border-2 transition-all cursor-pointer group/word min-h-[4rem] relative overflow-hidden ${isLearned
       ? 'bg-brand-600 border-brand-500 text-white shadow-lg shadow-brand-500/20'
       : isNew
         ? 'bg-emerald-50/40 dark:bg-emerald-900/10 border-emerald-200/50 dark:border-emerald-800/50 shadow-lg shadow-emerald-500/5'
@@ -77,11 +78,11 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
   >
     <div className="min-w-0 pr-1.5 relative z-10 flex flex-col justify-center">
       <div className="flex items-center gap-1.5 mb-1">
-        <span className={`text-[8px] font-bold px-1.5 py-0.5 rounded-md ${isLearned ? 'bg-white/20 text-white' : isNew ? 'bg-emerald-100 text-emerald-600' : 'bg-brand-100 dark:bg-brand-900/30 text-brand-600'} inline-block tracking-tighter`}>
+        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md ${isLearned ? 'bg-white/20 text-white' : isNew ? 'bg-emerald-100 text-emerald-600' : 'bg-brand-100 dark:bg-brand-900/30 text-brand-600'} inline-block tracking-tighter`}>
           {word.cefr || '??'}
         </span>
         {isNew && !isLearned && (
-          <span className="bg-emerald-600 text-white text-[7px] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-tighter animate-pulse">YENİ</span>
+          <span className="bg-emerald-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter animate-bounce">Yeni</span>
         )}
         {word.pronunciation && (
           <button
@@ -96,8 +97,8 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
           </button>
         )}
       </div>
-      <p className="text-xs font-bold truncate leading-tight mb-0.5 uppercase">{word.en}</p>
-      <p className={`text-[10px] font-medium leading-tight truncate ${isLearned ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{word.tr}</p>
+      <p className="text-xs font-black truncate leading-tight mb-0.5">{word.en}</p>
+      <p className={`text-[10px] font-bold leading-tight truncate ${isLearned ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{word.tr}</p>
     </div>
     <div className="flex items-center space-x-1 relative z-10">
       {word.teachers && word.teachers.length > 0 && (
@@ -123,31 +124,6 @@ const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: 
   </div>
 );
 
-const CompactWordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: boolean, isNew?: boolean, onToggle: () => void }) => (
-  <div
-    onClick={(e) => {
-      e.stopPropagation();
-      onToggle();
-    }}
-    className={`group/word flex flex-col items-center justify-center p-2 rounded-2xl border-2 transition-all cursor-pointer relative overflow-hidden h-28 text-center ${isLearned
-      ? 'bg-brand-600 border-brand-500 text-white shadow-lg'
-      : isNew
-        ? 'bg-white dark:bg-slate-900 border-brand-100 dark:border-brand-900/40 shadow-sm'
-        : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700'
-      } hover:-translate-y-1 hover:shadow-xl duration-300`}
-  >
-    <span className={`text-[7px] font-black px-1.5 py-0.5 rounded-md mb-2 ${isLearned ? 'bg-white/20 text-white' : 'bg-brand-50 dark:bg-brand-900/30 text-brand-600'} uppercase tracking-[0.2em] relative z-10`}>
-      {word.cefr || 'A1'}
-    </span>
-    <p className={`text-[10px] font-black truncate max-w-full leading-none uppercase mb-1 relative z-10 ${isLearned ? 'text-white' : 'text-slate-900 dark:text-white'}`}>{word.en}</p>
-    <p className={`text-[8px] font-bold leading-tight line-clamp-2 px-1 relative z-10 ${isLearned ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{word.tr}</p>
-
-    <div className={`mt-2 w-4 h-4 rounded-md flex items-center justify-center shrink-0 transition-all relative z-10 ${isLearned ? 'bg-white/20' : 'bg-brand-50 dark:bg-brand-900/30'}`}>
-      {isLearned ? <Check className="w-2.5 h-2.5 text-white" /> : <Sparkles className="w-2.5 h-2.5 text-brand-500" />}
-    </div>
-  </div>
-);
-
 export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefreshUser }) => {
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [teacherWords, setTeacherWords] = useState<WordType[]>([]);
@@ -162,12 +138,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
   // Handle Initial State from URL
   const [activeCard, setActiveCard] = useState<'study' | 'history'>(() => {
     if (typeof window === 'undefined') return 'study';
-    const path = window.location.pathname;
-    if (path === '/hub/assignments') return 'history';
+    if (window.location.pathname === '/hub/assignments') return 'history';
     return 'study';
   });
   const [wordPage, setWordPage] = useState(1);
-  const CURRENT_PAGE_SIZE = selectedAssignment ? 18 : 24;
+  const WORDS_PER_PAGE = 24;
 
   const [activeTeacherCard, setActiveTeacherCard] = useState<'selector' | 'list' | 'history'>(() => {
     if (typeof window === 'undefined') return 'selector';
@@ -190,13 +165,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
   // Sync Student URL
   const updateStudentCard = (card: 'study' | 'history', assignmentId?: string) => {
     setActiveCard(card);
-    const url = new URL(window.location.origin + (card === 'history' ? '/hub/assignments' : '/hub/study'));
+    let path = '/hub/study';
+    if (card === 'history') path = '/hub/assignments';
 
     if (assignmentId) {
+      const url = new URL(window.location.href);
       url.searchParams.set('id', assignmentId);
+      window.history.pushState({}, '', url.toString());
+    } else {
+      if (card === 'study') {
+        window.history.pushState({}, '', '/hub/study');
+      } else {
+        window.history.pushState({}, '', path);
+      }
     }
-
-    window.history.pushState({}, '', url.toString());
   };
 
   useEffect(() => {
@@ -221,7 +203,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
       fetchLearnedWords();
       fetchRecommendedWords();
     }
-  }, [user?.id, user?.role, refreshTrigger]);
+  }, [user, refreshTrigger]);
 
 
   const fetchAssignments = async () => {
@@ -718,14 +700,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                     <h5 className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">Ödev Kelimeleri ({selectedAssignment.words?.length || 0})</h5>
                                   </div>
                                   <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2">
-                                    {selectedAssignment.words?.slice((wordPage - 1) * CURRENT_PAGE_SIZE, wordPage * CURRENT_PAGE_SIZE).map((word: any, id: number) => (
+                                    {selectedAssignment.words?.slice((wordPage - 1) * WORDS_PER_PAGE, wordPage * WORDS_PER_PAGE).map((word: any, id: number) => (
                                       <WordCard key={id} word={word} isLearned={learnedWordIds.has(word.id)} onToggle={() => handleToggleLearned(word.id)} />
                                     ))}
                                   </div>
                                 </div>
                               </div>
                               {/* Compact Pagination for Assignment Words */}
-                              {selectedAssignment.words && selectedAssignment.words.length > CURRENT_PAGE_SIZE && (
+                              {selectedAssignment.words && selectedAssignment.words.length > WORDS_PER_PAGE && (
                                 <div className="flex items-center justify-center space-x-2 mt-auto pt-2">
                                   <button
                                     onClick={() => setWordPage(p => Math.max(1, p - 1))}
@@ -735,11 +717,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                     <ChevronLeft className="w-3 h-3 text-slate-500" />
                                   </button>
                                   <span className="text-[10px] font-black tabular-nums">
-                                    <span className="text-orange-500">{wordPage}</span><span className="text-slate-500 dark:text-slate-400"> / {Math.ceil(selectedAssignment.words.length / CURRENT_PAGE_SIZE)}</span>
+                                    <span className="text-orange-500">{wordPage}</span><span className="text-slate-500 dark:text-slate-400"> / {Math.ceil(selectedAssignment.words.length / WORDS_PER_PAGE)}</span>
                                   </span>
                                   <button
-                                    onClick={() => setWordPage(p => Math.min(Math.ceil(selectedAssignment.words.length / CURRENT_PAGE_SIZE), p + 1))}
-                                    disabled={wordPage >= Math.ceil(selectedAssignment.words.length / CURRENT_PAGE_SIZE)}
+                                    onClick={() => setWordPage(p => Math.min(Math.ceil(selectedAssignment.words.length / WORDS_PER_PAGE), p + 1))}
+                                    disabled={wordPage >= Math.ceil(selectedAssignment.words.length / WORDS_PER_PAGE)}
                                     className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors"
                                   >
                                     <ChevronRight className="w-3 h-3 text-slate-500" />
@@ -750,7 +732,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                           ) : (
                             <div className="h-full flex flex-col">
                               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2 flex-1 content-start">
-                                {teacherWords.slice((wordPage - 1) * CURRENT_PAGE_SIZE, wordPage * CURRENT_PAGE_SIZE).map((word) => (
+                                {teacherWords.slice((wordPage - 1) * WORDS_PER_PAGE, wordPage * WORDS_PER_PAGE).map((word) => (
                                   <WordCard
                                     key={word.id}
                                     word={word}
@@ -764,7 +746,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                 ))}
                               </div>
                               {/* Compact Pagination for Teacher Words */}
-                              {teacherWords.length > CURRENT_PAGE_SIZE && (
+                              {teacherWords.length > WORDS_PER_PAGE && (
                                 <div className="flex items-center justify-center space-x-2 mt-auto pt-2">
                                   <button
                                     onClick={() => setWordPage(p => Math.max(1, p - 1))}
@@ -774,11 +756,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                     <ChevronLeft className="w-3 h-3 text-slate-500" />
                                   </button>
                                   <span className="text-[9px] font-bold text-slate-400">
-                                    {wordPage} / {Math.ceil(teacherWords.length / CURRENT_PAGE_SIZE)}
+                                    {wordPage} / {Math.ceil(teacherWords.length / WORDS_PER_PAGE)}
                                   </span>
                                   <button
-                                    onClick={() => setWordPage(p => Math.min(Math.ceil(teacherWords.length / CURRENT_PAGE_SIZE), p + 1))}
-                                    disabled={wordPage >= Math.ceil(teacherWords.length / CURRENT_PAGE_SIZE)}
+                                    onClick={() => setWordPage(p => Math.min(Math.ceil(teacherWords.length / WORDS_PER_PAGE), p + 1))}
+                                    disabled={wordPage >= Math.ceil(teacherWords.length / WORDS_PER_PAGE)}
                                     className="p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-30 transition-colors"
                                   >
                                     <ChevronRight className="w-3 h-3 text-slate-500" />
@@ -865,9 +847,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8 xl:grid-cols-10 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-6 gap-4">
                   {recommendedWords.map((word) => (
-                    <CompactWordCard
+                    <WordCard
                       key={word.id}
                       word={word}
                       isLearned={learnedWordIds.has(word.id)}
@@ -882,11 +864,34 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-8 space-y-6">
+              <section className="group relative bg-slate-900 rounded-[3.5rem] p-10 md:p-14 text-white overflow-hidden shadow-2xl transition-all hover:shadow-brand-900/40 hover:scale-[1.01] active:scale-[0.98] duration-500 cursor-pointer"
+                onClick={() => onNavigate(AppTab.AI_TUTOR)}>
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-600/20 rounded-full blur-[100px] -mr-40 -mt-40 animate-pulse group-hover:bg-brand-500/30 transition-colors"></div>
+                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-indigo-600/10 rounded-full blur-[80px] -ml-20 -mb-20"></div>
+                <div className="relative z-10 space-y-7">
+                  <div className="inline-flex items-center space-x-2 bg-white/10 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-white/10 group-hover:border-white/20 transition-colors backdrop-blur-md">
+                    <Sparkles className="w-3.5 h-3.5 text-brand-400 animate-pulse" />
+                    <span>Mewo AI Tutor Lab</span>
+                  </div>
+                  <h3 className="text-2xl md:text-3xl font-black leading-[1.1] tracking-tight group-hover:translate-x-1 transition-transform">
+                    Konuşma <br /> <span className="text-brand-400 italic">Yeteneklerini <br /> Geliştir.</span>
+                  </h3>
+                  <p className="text-slate-400 text-sm md:text-base max-w-xs font-medium leading-relaxed">
+                    Yapay zeka eğitmenin Mewo ile 7/24 konuşma pratiği yap ve anlık geri bildirim al.
+                  </p>
+                  <button
+                    className="w-full md:w-auto bg-brand-600 hover:bg-brand-500 text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-brand-900/50 flex items-center justify-center group-hover:px-12 active:scale-95"
+                  >
+                    Pratiğe Başla <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                  </button>
+                </div>
+              </section>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 <Translator />
               </div>
             </div>
             <div className="lg:col-span-4 space-y-6">
+              <LiveTutor />
             </div>
           </div>
         </div >
