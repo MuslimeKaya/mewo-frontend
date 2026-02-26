@@ -257,10 +257,24 @@ export const AssignmentHistory: React.FC<AssignmentHistoryProps> = ({ assignment
                                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Kelime İçeriği ({assignment.words.length})</p>
                                                     <div className="flex flex-wrap gap-1.5">
                                                         {assignment.words.map((w: any, idx: number) => (
-                                                            <span key={idx} className="text-[10px] px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-slate-600">
-                                                                <span className="font-bold text-brand-600 mr-1">{w.en}</span>
-                                                                <span className="text-slate-400">{w.tr}</span>
+                                                            <span key={idx} className="text-[10px] px-2 py-1 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-600 dark:text-slate-300">
+                                                                <span className="font-bold text-orange-600 dark:text-orange-400 mr-1">{w.en}</span>
+                                                                <span className="text-slate-400 dark:text-slate-500">{w.tr}</span>
                                                             </span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {assignment.grammars && assignment.grammars.length > 0 && (
+                                                <div>
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Gramer Üniteleri ({assignment.grammars.length})</p>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        {assignment.grammars.map((g: any, idx: number) => (
+                                                            <div key={idx} className="flex items-center gap-2 px-3 py-1.5 bg-orange-50 dark:bg-orange-500/10 rounded-lg border border-orange-100 dark:border-orange-500/20">
+                                                                <BookOpen className="w-3 h-3 text-orange-500" />
+                                                                <span className="text-[10px] font-bold text-orange-600 dark:text-orange-400">{g.title}</span>
+                                                            </div>
                                                         ))}
                                                     </div>
                                                 </div>

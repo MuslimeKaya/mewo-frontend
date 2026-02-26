@@ -9,6 +9,7 @@ import { StudentsView } from '@/components/StudentsView';
 import { TeachersView } from '@/components/TeachersView';
 import { GrammarView } from '@/components/GrammarView';
 import { SettingsView } from '@/components/SettingsView';
+import { AssignmentTemplates } from '@/components/AssignmentTemplates';
 import { Login } from '@/components/Login';
 import { AppTab, User } from '@/types';
 import { wordsService } from '@/services/words';
@@ -162,7 +163,17 @@ export default function Home() {
     const renderPage = () => {
         switch (activeTab) {
             case AppTab.DASHBOARD:
-                return <Dashboard onNavigate={setActiveTab} user={currentUser} onRefreshUser={setCurrentUser} />;
+                return <Dashboard onNavigate={setActiveTab} user={currentUser} onRefreshUser={setCurrentUser} activeTab={activeTab} />;
+            case AppTab.TEMPLATES:
+                return (
+                    <AssignmentTemplates
+                        onApplyTemplate={(template) => {
+                            localStorage.setItem(`mewo_applied_template`, JSON.stringify(template));
+                            setActiveTab(AppTab.DASHBOARD);
+                            window.history.pushState({}, '', '/hub/vocabulary');
+                        }}
+                    />
+                );
             case AppTab.PATHWAY:
                 return <RoadmapView />;
             case AppTab.LIBRARY:

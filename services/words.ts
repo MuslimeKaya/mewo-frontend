@@ -42,7 +42,7 @@ export const wordsService = {
         return apiClient.get<Word[]>('/words/teacher-words');
     },
 
-    async sendAssignment(words: Word[], title?: string, description?: string, files?: File[], studentIds?: string[]): Promise<any> {
+    async sendAssignment(words: Word[], title?: string, description?: string, files?: File[], studentIds?: string[], grammars?: any[]): Promise<any> {
         const formData = new FormData();
         formData.append('words', JSON.stringify(words));
         if (title) formData.append('title', title);
@@ -58,7 +58,13 @@ export const wordsService = {
             formData.append('studentIds', JSON.stringify(studentIds));
         }
 
-        return apiClient.post('/words/teacher/assignments', formData);
+        if (grammars && grammars.length > 0) {
+            formData.append('grammars', JSON.stringify(grammars));
+        }
+
+        return apiClient.post('/words/teacher/assignments', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
     },
 
     async getAssignmentHistory(): Promise<any[]> {
@@ -70,16 +76,32 @@ export const wordsService = {
         return { success: true };
     },
 
+    // --- TEMPLATE METHODS ---
+
+    async getTemplates(): Promise<any[]> {
+        return apiClient.get<any[]>('/words/teacher/templates');
+    },
+
+    async createTemplate(data: { title: string; description?: string; words: any[]; files?: any[]; grammars?: any[] }): Promise<any> {
+        return apiClient.post('/words/teacher/templates', data);
+    },
+
+    async updateTemplate(id: string, data: any): Promise<any> {
+        return apiClient.put(`/words/teacher/templates/${id}`, data);
+    },
+
+    async deleteTemplate(id: string): Promise<any> {
+        return apiClient.delete(`/words/teacher/templates/${id}`);
+    },
+
     async getStudentAssignmentHistory(): Promise<any[]> {
         return apiClient.get<any[]>('/words/assignments/student');
     },
 
     async markAsViewed(assignmentId: string): Promise<void> {
         try {
-            // We don't need the response body, just the action
             await apiClient.post(`/words/assignments/${assignmentId}/view`);
         } catch (e) {
-            // Ignore JSON parse errors for empty 200 OK responses if that's happening
             console.error('Failed to mark assignment as viewed', e);
         }
     },
@@ -112,7 +134,6 @@ export const wordsService = {
         return apiClient.get<Word[]>('/words/student/recommended-words');
     },
 
-    // Kept for backward compatibility if used directly
     getToken() {
         if (typeof window === 'undefined') return '';
         const userStr = localStorage.getItem('mewo_user');
@@ -132,16 +153,13 @@ export const wordsService = {
         searchCache.clear();
     },
 
-    // Adding legacy authFetch for backward compatibility but redirecting to apiClient
     async authFetch(url: string, options: RequestInit = {}) {
-        // We need to strip the API_URL part if it's there because apiClient expects endpoint relative
         let endpoint = url;
         const apiBase = API_URL;
         if (url.startsWith(apiBase)) {
             endpoint = url.substring(apiBase.length);
         }
 
-        // Map fetch options to apiClient methods
         const method = options.method?.toUpperCase() || 'GET';
         if (method === 'GET') return apiClient.get(endpoint, options);
         if (method === 'POST') return apiClient.post(endpoint, options.body, options);

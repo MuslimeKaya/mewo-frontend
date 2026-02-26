@@ -68,5 +68,6 @@ export enum AppTab {
   STUDENTS = 'students',
   TEACHERS = 'teachers',
   GRAMMAR = 'grammar',
-  SETTINGS = 'settings'
+  SETTINGS = 'settings',
+  TEMPLATES = 'templates'
 }

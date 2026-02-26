@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { LayoutDashboard, Compass, Sparkles, Library, Cat, Bell, Moon, Sun, LogOut, ShieldCheck, User as UserIcon, Users, X, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Compass, Sparkles, Library, Cat, Bell, Moon, Sun, LogOut, ShieldCheck, User as UserIcon, Users, X, BookOpen, Layout as LayoutIcon } from 'lucide-react';
 import { AppTab, User } from '../types';
 import { BulletinBoard } from './BulletinBoard';
 import { bulletinsService } from '../services/bulletins';
@@ -83,7 +83,10 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
     ...(user.role === 'student' ? [{ id: AppTab.PATHWAY, label: 'Roadmap', icon: Compass }] : []),
     { id: AppTab.GRAMMAR, label: 'Grammar', icon: BookOpen },
     { id: AppTab.LIBRARY, label: 'Library', icon: Library },
-    ...(user.role === 'teacher' ? [{ id: AppTab.STUDENTS, label: 'Students', icon: Users }] : []),
+    ...(user.role === 'teacher' ? [
+      { id: AppTab.STUDENTS, label: 'Students', icon: Users },
+      { id: AppTab.TEMPLATES, label: 'Templates', icon: LayoutIcon }
+    ] : []),
     ...(user.role === 'student' ? [{ id: AppTab.TEACHERS, label: 'Teachers', icon: Users }] : []),
   ];
 
@@ -97,6 +100,7 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, onTabChange
       case AppTab.STUDENTS: path = '/students'; break;
       case AppTab.TEACHERS: path = '/teachers'; break;
       case AppTab.SETTINGS: path = '/settings'; break;
+      case AppTab.TEMPLATES: path = '/hub/templates'; break;
       case AppTab.DASHBOARD: path = '/hub'; break;
     }
     window.history.pushState({}, '', path);

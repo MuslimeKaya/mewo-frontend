@@ -1,43 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
 import {
-  Trophy,
-  BookOpen,
-  Flame,
-  Target,
-  ArrowRight,
-  Sparkles,
-  Zap,
-  TrendingUp,
-  Clock,
-  Edit3,
-  Check,
-  Cat,
-  MessageSquare,
-  Award,
-  Shield,
-  ShieldCheck,
-  Medal,
-  Users,
-  History as HistoryIcon,
-  Loader2,
-  FileText,
-  Download,
-  ExternalLink,
-  Image as ImageIcon,
-  FileSpreadsheet,
-  Calendar,
-  ChevronLeft,
-  X,
-  Volume2,
-  ChevronRight
+  Trophy, BookOpen, Flame, Target, ArrowRight, Sparkles, TrendingUp, ArrowRightLeft,
+  Languages, Check, Volume2, History as HistoryIcon, Plus, Calendar, Clock,
+  ChevronRight, ChevronLeft, Search, Filter, Edit3, Trash2, Brain, Star, Info,
+  List, Settings, LogOut, Loader2, Copy, FileText, Download, ExternalLink,
+  Image as ImageIcon, FileSpreadsheet, X, Zap, Cat, MessageSquare, Award,
+  Shield, ShieldCheck, Medal, Users, Layout as LayoutIcon
 } from 'lucide-react';
 import { AppTab, WeeklyGoal, User } from '../types';
-import { LiveTutor } from './LiveTutor';
 import { Translator } from './Translator';
 import { WordSelector } from './WordSelector';
 import { TeacherWordList } from './TeacherWordList';
 import { AssignmentHistory } from './AssignmentHistory';
+import { AssignmentTemplates } from './AssignmentTemplates';
 import { BulletinBoard } from './BulletinBoard';
 import { wordsService, Word as WordType } from '../services/words';
 import { authService } from '../services/auth';
@@ -47,6 +23,7 @@ interface DashboardProps {
   onNavigate: (tab: AppTab) => void;
   user: User;
   onRefreshUser?: (user: User) => void;
+  activeTab?: AppTab;
 }
 
 const BadgeItem = ({ title, icon, color, bg, progress }: any) => (
@@ -63,71 +40,89 @@ const BadgeItem = ({ title, icon, color, bg, progress }: any) => (
   </div>
 );
 
-const WordCard = ({ word, isLearned, isNew, onToggle }: { word: any, isLearned: boolean, isNew?: boolean, onToggle: () => void }) => (
+const WordCard = ({ word, isLearned, isNew, onToggle, onTranslate }: { word: any, isLearned: boolean, isNew?: boolean, onToggle: () => void, onTranslate: (text: string) => void }) => (
+  <div
+    onClick={() => onTranslate(word.en)}
+    className={`group flex flex-col p-3 rounded-xl border transition-all cursor-pointer relative h-22 ${isLearned
+      ? 'bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-800/40'
+      : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800/60 hover:border-orange-500/30'
+      } hover:-translate-y-1 duration-300 shadow-sm`}
+  >
+    {/* Top Row */}
+    <div className="flex items-center justify-between mb-auto">
+      <div className="flex items-center space-x-1.5">
+        <span className="bg-orange-600 text-white text-[8px] font-black px-1 py-0.5 rounded-md uppercase tracking-tight">
+          {word.cefr || 'A1'}
+        </span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (word.pronunciation) {
+              new Audio(word.pronunciation).play().catch(e => console.error("Audio play error:", e));
+            }
+          }}
+          className="text-slate-400 dark:text-slate-600 hover:text-brand-500 dark:hover:text-white transition-colors"
+        >
+          <Volume2 className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      <button
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggle();
+        }}
+        className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${isLearned
+          ? 'bg-slate-100 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500'
+          : 'bg-orange-600/10 text-orange-500 hover:bg-orange-600 hover:text-white'
+          }`}
+      >
+        {isLearned ? <Check className="w-3.5 h-3.5" /> : <Plus className="w-4 h-4" />}
+      </button>
+    </div>
+
+    {/* Content */}
+    <div className="mt-auto">
+      <h4 className="text-[11px] font-black text-slate-900 dark:text-white tracking-tight truncate leading-none mb-1">{word.en}</h4>
+      <p className="text-[9px] font-bold text-slate-400 dark:text-slate-500 truncate leading-none uppercase">{word.tr}</p>
+    </div>
+  </div>
+);
+
+const CompactWordCard = ({ word, isLearned, isNew, onToggle, onTranslate }: { word: any, isLearned: boolean, isNew?: boolean, onToggle: () => void, onTranslate: (text: string) => void }) => (
   <div
     onClick={(e) => {
       e.stopPropagation();
       onToggle();
+      onTranslate(word.en);
     }}
-    className={`flex items-center justify-between px-2.5 py-2.5 rounded-xl border-2 transition-all cursor-pointer group/word min-h-[4rem] relative overflow-hidden ${isLearned
-      ? 'bg-brand-600 border-brand-500 text-white shadow-lg shadow-brand-500/20'
+    className={`group/word flex flex-col items-start justify-center p-3 rounded-2xl border transition-all cursor-pointer relative overflow-hidden h-18 text-left ${isLearned
+      ? 'bg-brand-600 border-brand-500 text-white shadow-lg'
       : isNew
-        ? 'bg-emerald-50/40 dark:bg-emerald-900/10 border-emerald-200/50 dark:border-emerald-800/50 shadow-lg shadow-emerald-500/5'
-        : 'bg-[#F8F9FA] dark:bg-slate-800 border-blue-100 dark:border-slate-700 shadow-sm hover:border-emerald-500 hover:shadow-emerald-500/10 hover:bg-white'
-      } hover:shadow-xl hover:-translate-y-0.5 active:scale-95 duration-300`}
+        ? 'bg-emerald-50/40 dark:bg-emerald-900/10 border-emerald-100 dark:border-emerald-800/50 shadow-sm'
+        : 'bg-slate-50 dark:bg-slate-800 border-slate-100 dark:border-slate-700'
+      } hover:-translate-y-1 hover:shadow-xl duration-300`}
   >
-    <div className="min-w-0 pr-1.5 relative z-10 flex flex-col justify-center">
-      <div className="flex items-center gap-1.5 mb-1">
-        <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-md ${isLearned ? 'bg-white/20 text-white' : isNew ? 'bg-emerald-100 text-emerald-600' : 'bg-brand-100 dark:bg-brand-900/30 text-brand-600'} inline-block tracking-tighter`}>
-          {word.cefr || '??'}
-        </span>
-        {isNew && !isLearned && (
-          <span className="bg-emerald-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded-full uppercase tracking-tighter animate-bounce">Yeni</span>
-        )}
-        {word.pronunciation && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              new Audio(word.pronunciation).play().catch(e => console.error("Audio play error:", e));
-            }}
-            className={`p-1 rounded-lg transition-all active:scale-95 ${isLearned ? 'text-white/60 hover:text-white hover:bg-white/10' : 'text-slate-400 hover:text-brand-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-            title="Dinle"
-          >
-            <Volume2 className="w-3 h-3" />
-          </button>
-        )}
-      </div>
-      <p className="text-xs font-black truncate leading-tight mb-0.5">{word.en}</p>
-      <p className={`text-[10px] font-bold leading-tight truncate ${isLearned ? 'text-white/70' : 'text-slate-400 dark:text-slate-500'}`}>{word.tr}</p>
-    </div>
-    <div className="flex items-center space-x-1 relative z-10">
-      {word.teachers && word.teachers.length > 0 && (
-        <div className="flex -space-x-1 overflow-hidden">
-          {word.teachers.map((t: any, idx: number) => (
-            <div
-              key={idx}
-              title={t.firstName + ' ' + t.lastName}
-              className={`w-3.5 h-3.5 rounded-full border border-white dark:border-slate-900 flex items-center justify-center text-[6px] font-black uppercase ${isLearned ? 'bg-white/20 text-white' : 'bg-indigo-500 text-white'}`}
-            >
-              {t.firstName?.[0]}
-            </div>
-          ))}
-        </div>
+    <span className={`text-[7px] font-black px-1 py-0.5 rounded-md mb-1.5 ${isLearned ? 'bg-white/20 text-white' : 'bg-brand-50 dark:bg-brand-900/30 text-brand-600'} uppercase tracking-[0.1em] relative z-10`}>
+      {word.cefr || '??'}
+    </span>
+    <div className="flex items-center gap-1.5 relative z-10 max-w-full">
+      <p className={`text-[10px] font-black truncate leading-none uppercase ${isLearned ? 'text-white' : 'text-slate-900 dark:text-white'}`}>{word.en}</p>
+      {isLearned ? (
+        <Check className="w-2.5 h-2.5 text-white/80" />
+      ) : (
+        <Sparkles className="w-2.5 h-2.5 text-brand-500/80" />
       )}
-      <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-all ${isLearned ? 'bg-white/20' : isNew ? 'bg-emerald-100 dark:bg-emerald-800' : 'bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800'}`}>
-        {isLearned ? <Check className="w-4 h-4 text-white" /> : isNew ? <Sparkles className="w-4 h-4 text-emerald-500" /> : <Sparkles className="w-3 h-3 text-brand-500" />}
-      </div>
     </div>
-    {isNew && !isLearned && (
-      <div className="absolute top-0 right-0 w-12 h-12 bg-emerald-500/10 rounded-full -mr-6 -mt-6" />
-    )}
+
   </div>
 );
 
-export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefreshUser }) => {
+export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefreshUser, activeTab }) => {
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [teacherWords, setTeacherWords] = useState<WordType[]>([]);
   const [recommendedWords, setRecommendedWords] = useState<WordType[]>([]);
+  const [autoTranslateText, setAutoTranslateText] = useState('');
   const [loadingTeacherWords, setLoadingTeacherWords] = useState(false);
   const [loadingRecommended, setLoadingRecommended] = useState(false);
   const [assignments, setAssignments] = useState<any[]>([]);
@@ -142,7 +137,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
     return 'study';
   });
   const [wordPage, setWordPage] = useState(1);
-  const WORDS_PER_PAGE = 24;
+  const WORDS_PER_PAGE = 40;
 
   const [activeTeacherCard, setActiveTeacherCard] = useState<'selector' | 'list' | 'history'>(() => {
     if (typeof window === 'undefined') return 'selector';
@@ -158,9 +153,33 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
   // Sync Teacher URL
   const updateTeacherCard = (card: 'selector' | 'list' | 'history') => {
     setActiveTeacherCard(card);
-    const path = card === 'selector' ? '/hub/create' : card === 'list' ? '/hub/vocabulary' : '/hub/assignments';
+    const path =
+      card === 'selector' ? '/hub/create' :
+        card === 'list' ? '/hub/vocabulary' :
+          '/hub/assignments';
     window.history.pushState({}, '', path);
   };
+
+  useEffect(() => {
+    const handleLocationChange = () => {
+      const path = window.location.pathname;
+      if (user.role === 'teacher') {
+        if (path === '/hub/vocabulary') setActiveTeacherCard('list');
+        else if (path === '/hub/assignments') setActiveTeacherCard('history');
+        else if (path === '/hub/create') setActiveTeacherCard('selector');
+      } else {
+        if (path === '/hub/assignments') setActiveCard('history');
+        else setActiveCard('study');
+      }
+    };
+
+    window.addEventListener('popstate', handleLocationChange);
+    // Also listen for pushState by polling or a custom event if possible, 
+    // but here we can just watch the current path as well.
+    handleLocationChange();
+
+    return () => window.removeEventListener('popstate', handleLocationChange);
+  }, [user.role]);
 
   // Sync Student URL
   const updateStudentCard = (card: 'study' | 'history', assignmentId?: string) => {
@@ -203,7 +222,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
       fetchLearnedWords();
       fetchRecommendedWords();
     }
-  }, [user, refreshTrigger]);
+  }, [user?.id, user?.role, refreshTrigger]);
 
 
   const fetchAssignments = async () => {
@@ -335,10 +354,13 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
       {/* Minimalist Greeting Section */}
-      <div className="mb-0">
-        <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
-          Hoş geldin, <span className="text-brand-600">{user.firstName}</span>
-        </h1>
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-2">
+        <div className="mb-0">
+          <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+            Hoş geldin, <span className="text-brand-600">{user.firstName}</span>
+          </h1>
+        </div>
+
       </div>
 
       {user.role === 'teacher' && (
@@ -406,11 +428,14 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                         triggerRefresh();
                       }}
                       onWordRemoved={triggerRefresh}
+                      onTemplatesClick={() => onNavigate(AppTab.TEMPLATES)}
                     />
                   </div>
                 )}
               </div>
             </div>
+
+
 
             <div
               onClick={() => activeTeacherCard !== 'history' && updateTeacherCard('history')}
@@ -699,9 +724,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                     <div className="w-1 h-4 bg-brand-500 rounded-full" />
                                     <h5 className="text-[9px] font-black text-slate-900 dark:text-white uppercase tracking-[0.2em]">Ödev Kelimeleri ({selectedAssignment.words?.length || 0})</h5>
                                   </div>
-                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2">
+                                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-2">
                                     {selectedAssignment.words?.slice((wordPage - 1) * WORDS_PER_PAGE, wordPage * WORDS_PER_PAGE).map((word: any, id: number) => (
-                                      <WordCard key={id} word={word} isLearned={learnedWordIds.has(word.id)} onToggle={() => handleToggleLearned(word.id)} />
+                                      <WordCard key={id} word={word} isLearned={learnedWordIds.has(word.id)} onToggle={() => { }} onTranslate={setAutoTranslateText} />
                                     ))}
                                   </div>
                                 </div>
@@ -731,7 +756,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                             </div>
                           ) : (
                             <div className="h-full flex flex-col">
-                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2 flex-1 content-start">
+                              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-7 gap-2 flex-1 content-start">
                                 {teacherWords.slice((wordPage - 1) * WORDS_PER_PAGE, wordPage * WORDS_PER_PAGE).map((word) => (
                                   <WordCard
                                     key={word.id}
@@ -742,6 +767,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                                       handleToggleLearned(word.id);
                                       markWordAsRead(word.id);
                                     }}
+                                    onTranslate={setAutoTranslateText}
                                   />
                                 ))}
                               </div>
@@ -825,7 +851,6 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
             </>
           )
           }
-
           {
             user.role === 'student' && recommendedWords.length > 0 && (
               <div className="space-y-4 animate-in slide-in-from-bottom-4 duration-500">
@@ -847,14 +872,15 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10 xl:grid-cols-12 gap-1.5">
                   {recommendedWords.map((word) => (
-                    <WordCard
+                    <CompactWordCard
                       key={word.id}
                       word={word}
                       isLearned={learnedWordIds.has(word.id)}
                       isNew={true}
                       onToggle={() => handleToggleLearned(word.id)}
+                      onTranslate={setAutoTranslateText}
                     />
                   ))}
                 </div>
@@ -864,34 +890,9 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate, user, onRefres
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div className="lg:col-span-8 space-y-6">
-              <section className="group relative bg-slate-900 rounded-[3.5rem] p-10 md:p-14 text-white overflow-hidden shadow-2xl transition-all hover:shadow-brand-900/40 hover:scale-[1.01] active:scale-[0.98] duration-500 cursor-pointer"
-                onClick={() => onNavigate(AppTab.AI_TUTOR)}>
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-600/20 rounded-full blur-[100px] -mr-40 -mt-40 animate-pulse group-hover:bg-brand-500/30 transition-colors"></div>
-                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-indigo-600/10 rounded-full blur-[80px] -ml-20 -mb-20"></div>
-                <div className="relative z-10 space-y-7">
-                  <div className="inline-flex items-center space-x-2 bg-white/10 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border border-white/10 group-hover:border-white/20 transition-colors backdrop-blur-md">
-                    <Sparkles className="w-3.5 h-3.5 text-brand-400 animate-pulse" />
-                    <span>Mewo AI Tutor Lab</span>
-                  </div>
-                  <h3 className="text-2xl md:text-3xl font-black leading-[1.1] tracking-tight group-hover:translate-x-1 transition-transform">
-                    Konuşma <br /> <span className="text-brand-400 italic">Yeteneklerini <br /> Geliştir.</span>
-                  </h3>
-                  <p className="text-slate-400 text-sm md:text-base max-w-xs font-medium leading-relaxed">
-                    Yapay zeka eğitmenin Mewo ile 7/24 konuşma pratiği yap ve anlık geri bildirim al.
-                  </p>
-                  <button
-                    className="w-full md:w-auto bg-brand-600 hover:bg-brand-500 text-white px-10 py-5 rounded-[2rem] font-black uppercase tracking-[0.2em] transition-all shadow-2xl shadow-brand-900/50 flex items-center justify-center group-hover:px-12 active:scale-95"
-                  >
-                    Pratiğe Başla <ArrowRight className="ml-3 w-6 h-6 group-hover:translate-x-2 transition-transform" />
-                  </button>
-                </div>
-              </section>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                <Translator />
+                <Translator initialText={autoTranslateText} />
               </div>
-            </div>
-            <div className="lg:col-span-4 space-y-6">
-              <LiveTutor />
             </div>
           </div>
         </div >
